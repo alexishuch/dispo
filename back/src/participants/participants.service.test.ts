@@ -1,8 +1,9 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Availability } from 'src/availabilities/models/availability.entity';
 import { Poll } from 'src/polls/models/poll.entity';
-import { nonExistentParticipantId, testParticipantData, testPollData } from 'test/test-data.fixture';
+import { formattedSlot, nonExistentParticipantId, slotEndTimestamp, slotStartTimestamp, testParticipantData, testPollData } from 'test/test-data.fixture';
 import { clearTestData, createTestDataSource } from 'test/test-db.helper';
 import { DataSource, Repository } from 'typeorm';
 import { Participant } from './models/participant.entity';
@@ -13,6 +14,7 @@ describe('ParticipantsService', () => {
   let service: ParticipantsService;
   let participantRepository: Repository<Participant>;
   let pollRepository: Repository<Poll>;
+  let availabilityRepository: Repository<Availability>;
   let dataSource: DataSource;
 
   beforeAll(async () => {
@@ -29,12 +31,17 @@ describe('ParticipantsService', () => {
           provide: getRepositoryToken(Poll),
           useValue: dataSource.getRepository(Poll),
         },
+        {
+          provide: getRepositoryToken(Availability),
+          useValue: dataSource.getRepository(Availability),
+        },
       ],
     }).compile();
 
     service = module.get<ParticipantsService>(ParticipantsService);
     participantRepository = module.get<Repository<Participant>>(getRepositoryToken(Participant));
     pollRepository = module.get<Repository<Poll>>(getRepositoryToken(Poll));
+    availabilityRepository = module.get<Repository<Availability>>(getRepositoryToken(Availability));
   });
 
   afterEach(async () => {
@@ -101,9 +108,13 @@ describe('ParticipantsService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a participant if found', async () => {
+    it('should return a participant with formatted availabilities if found', async () => {
       const poll = await pollRepository.save(testPollData);
       const participant = await participantRepository.save({ name: 'John', poll });
+      const availability = await availabilityRepository.save({
+        participant,
+        slot: formattedSlot,
+      });
 
       const result = await service.findOne(participant.id);
 
@@ -111,7 +122,11 @@ describe('ParticipantsService', () => {
         id: participant.id,
         name: 'John',
         poll: expect.objectContaining(poll),
-        availabilities: [],
+        availabilities: [
+          expect.objectContaining({
+            slot_start: slotStartTimestamp,
+            slot_end: slotEndTimestamp,
+          })],
       });
     });
 

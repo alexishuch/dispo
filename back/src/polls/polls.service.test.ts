@@ -54,20 +54,27 @@ describe('PollsService', () => {
 
   describe('create', () => {
     it('should create a poll', async () => {
-      const createDto: CreatePollDto = { name: 'Pierre Poll Jacques', start_date: new Date('2025-01-02'), end_date: new Date('2025-01-12') };
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0)
+      const dateInTwoDays = new Date();
+      dateInTwoDays.setDate(dateInTwoDays.getDate() + 2);
+      dateInTwoDays.setHours(0, 0, 0, 0);
+      const createDto: CreatePollDto = { name: 'Pierre Poll Jacques', start_date: todayDate, end_date: dateInTwoDays };
 
       const result = await service.create(createDto);
 
       const stored = await pollRepository.findOne({ where: { id: result.id } });
       expect(result.id).toBeDefined();
       expect(stored).toMatchObject({
-        ...createDto,
+        name: createDto.name,
+        start_date: todayDate.toISOString().split('T')[0],
+        end_date: dateInTwoDays.toISOString().split('T')[0],
         created_at: expect.any(Date)
       });
     });
 
     it('should throw BadRequestException if end_date is before start_date', async () => {
-      const createDto: CreatePollDto = { name: 'Bad Poll', start_date: new Date('2025-01-02'), end_date: new Date('2025-01-01') };
+      const createDto: CreatePollDto = { name: 'Bad Poll', start_date: new Date(), end_date: new Date('2025-01-01') };
 
       const result = service.create(createDto);
 

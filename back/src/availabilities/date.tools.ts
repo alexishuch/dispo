@@ -8,7 +8,7 @@ export function formatDateToPGSlotRange(slotStart: Date, slotEnd: Date): string 
   return `{["${start}","${end}")}`;
 }
 
-export function deserializeAvailability(availability: Availability): IAvailability {
+export function deserializeAvailability(availability: Availability, includeParticipant = false): IAvailability {
   const match = availability.slot.match(/\["(.*?)","(.*?)"\)/);
   if (!match) {
     throw new ConflictException('Unable to deserialize availability slot');
@@ -19,6 +19,6 @@ export function deserializeAvailability(availability: Availability): IAvailabili
     id: availability.id,
     slot_start: new Date(slotStartRaw),
     slot_end: new Date(slotEndRaw),
-    participantId: availability.participant.id,
+    ...(includeParticipant && { participantId: availability.participant.id }),
   };
 }

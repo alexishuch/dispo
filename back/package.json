@@ -62,7 +62,7 @@
   },
   "jest": {
     "rootDir": "src",
-    "globalSetup": "../testing/jest.setup.ts",
+    "globalSetup": "../test/jest.setup.ts",
     "moduleFileExtensions": [
       "js",
       "json",

@@ -1,9 +1,11 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { deserializeAvailability } from 'src/availabilities/date.tools';
 import { Poll } from 'src/polls/models/poll.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { Participant } from './models/participant.entity';
 import { CreateParticipantDto, UpdateParticipantDto } from './models/participants.dto';
+import { IParticipant, IParticipantWithAvailabilities } from './models/participants.interface';
 
 @Injectable()
 export class ParticipantsService {
@@ -39,13 +41,13 @@ export class ParticipantsService {
     return this.participantRepository.find({ relations: ['poll'] });
   }
 
-  async findOne(id: string): Promise<Participant> {
+  async findOne(id: string): Promise<IParticipantWithAvailabilities> {
     const participant = await this.participantRepository.findOne({ where: { id }, relations: ['poll', 'availabilities'] });
     if (!participant) throw new NotFoundException('Participant not found');
-    return participant;
+    return { ...participant, availabilities: participant.availabilities.map((a) => deserializeAvailability(a)) };
   }
 
-  async update(id: string, updateParticipantDto: UpdateParticipantDto): Promise<Participant> {
+  async update(id: string, updateParticipantDto: UpdateParticipantDto): Promise<IParticipant> {
     const participant = await this.participantRepository.findOne({ where: { id } });
     if (!participant) throw new NotFoundException('Participant not found');
     this.participantRepository.merge(participant, updateParticipantDto);

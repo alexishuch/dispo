@@ -52,7 +52,7 @@ export class AvailabilitiesService {
     try {
       const savedAvailability = await this.availabilityRepository.save(availability);
       // Slots are stored as ranges in Postgres, need to deserialize before returning
-      return deserializeAvailability(savedAvailability);
+      return deserializeAvailability(savedAvailability, true);
     } catch (error) {
       if (
         error instanceof QueryFailedError &&
@@ -67,7 +67,7 @@ export class AvailabilitiesService {
   async findOne(id: string): Promise<IAvailability> {
     const availability = await this.availabilityRepository.findOne({ where: { id }, relations: ['participant'] });
     if (!availability) throw new NotFoundException('Availability not found');
-    return deserializeAvailability(availability);
+    return deserializeAvailability(availability, true);
   }
 
   async remove(id: string): Promise<void> {
