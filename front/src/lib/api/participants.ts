@@ -1,7 +1,5 @@
-import { dev } from "$app/environment";
 import type { IParticipant, IParticipantEnriched } from "$lib/model";
-
-const API_BASE_URL = dev ? 'http://localhost:3000' : import.meta.env.BASE_URL;
+import { API_BASE_URL } from "./baseUrl";
 
 export async function createParticipant(pollId: string, name: string): Promise<IParticipant> {
     const res = await fetch(`${API_BASE_URL}/participants`, {

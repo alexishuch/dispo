@@ -1,7 +1,7 @@
-import { dev } from "$app/environment";
 import type { IPoll, IPollEnriched } from "$lib/model";
+import { API_BASE_URL } from "./baseUrl";
 
-const API_BASE_URL = dev ? 'http://localhost:3000' : import.meta.env.BASE_URL;
+type Fetch = typeof fetch;
 
 export async function createPoll(name: string, start_date: string, end_date: string): Promise<IPoll> {
     const res = await fetch(`${API_BASE_URL}/polls`, {
@@ -18,7 +18,7 @@ export async function createPoll(name: string, start_date: string, end_date: str
     return await res.json();
 }
 
-export async function getPoll(id: string): Promise<IPollEnriched> {
+export async function getPoll(id: string, fetch: Fetch): Promise<IPollEnriched> {
     const res = await fetch(`${API_BASE_URL}/polls/${id}/computed`);
 
     if (!res.ok) {
