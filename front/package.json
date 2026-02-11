@@ -22,5 +22,8 @@
 	},
 	"overrides": {
 		"esbuild": "0.26.0"
+	},
+	"dependencies": {
+		"air-datepicker": "^3.6.0"
 	}
 }

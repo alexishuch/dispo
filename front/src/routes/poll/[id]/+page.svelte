@@ -2,19 +2,24 @@
   import { createParticipant, getParticipant } from '$lib/api/participants';
   import UrlDisplayBox from '$lib/components/url-display-box/+page.svelte';
   import { formatDateSlot } from '$lib/dateUtils';
+  import AirDatepicker from 'air-datepicker';
+  import localeFr from 'air-datepicker/locale/fr';
   import type { PageProps } from '../$types';
+  import('air-datepicker/air-datepicker.css');
 
   let { data }: PageProps = $props();
-
   let isCreating = $state(false);
   let selectedUserId = $state<string | null>(null);
-  let participant = $derived.by(() => {
+  let participant = $derived.by(async () => {
     if (selectedUserId) {
-      return getParticipant(selectedUserId);
+      const participant = getParticipant(selectedUserId);
+      return participant;
     }
     return null;
   });
+
   let newParticipantName = $state<string>('');
+  let selectedDate = $state<string>('');
 
   async function handleCreateParticipant() {
     if (newParticipantName) {
@@ -41,6 +46,9 @@
   <h1>Sondage {data.poll.name}</h1>
   <UrlDisplayBox pollId={data.poll.id} />
 </div>
+
+<div id="datepicker2"></div>
+
 {#if !selectedUserId}
   <div>
     <p>Sélectionnez votre nom :</p>
@@ -84,6 +92,26 @@
     {/if}
     {#if data.poll.end_date}
       <p>Fin : {data.poll.end_date}</p>
+    {/if}
+
+    <div
+      id="datepicker"
+      {@attach (div) => {
+        $effect(() => {
+          const datepicker = new AirDatepicker(div, {
+            inline: true,
+            locale: localeFr,
+            dateFormat: 'd/M/yyyy',
+            onSelect: ({ date }) => {
+              selectedDate = date?.toLocaleString() || '';
+            },
+          });
+        });
+      }}
+    ></div>
+
+    {#if selectedDate}
+      <p>Selected: {selectedDate}</p>
     {/if}
 
     {#if data.poll.commonSlots.length > 1}
