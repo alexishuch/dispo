@@ -40,10 +40,7 @@ main {
 h1 {
     font-size: 28px;
     font-weight: 700;
-    margin: 0 0 24px 0;
     color: var(--text-primary);
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 12px;
 }
 
 h2 {
@@ -97,7 +94,6 @@ form {
     gap: 8px;
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid var(--border);
 }
 
 form label {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createParticipant, getParticipant } from '$lib/api/participants';
+  import UrlDisplayBox from '$lib/components/url-display-box/+page.svelte';
   import { formatDateSlot } from '$lib/dateUtils';
   import type { PageProps } from '../$types';
 
@@ -16,7 +17,6 @@
   let newParticipantName = $state<string>('');
 
   async function handleCreateParticipant() {
-    console.log(isCreating, newParticipantName);
     if (newParticipantName) {
       isCreating = true;
       try {
@@ -27,7 +27,6 @@
         data.poll.participants = [...data.poll.participants, newParticipant];
         selectedUserId = newParticipant.id;
         newParticipantName = '';
-        console.log(selectedUserId, newParticipant, newParticipantName);
       } finally {
         isCreating = false;
       }
@@ -35,7 +34,13 @@
   }
 </script>
 
-<h1>Sondage {data.poll.name}</h1>
+<div
+  class="poll-header"
+  style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center"
+>
+  <h1>Sondage {data.poll.name}</h1>
+  <UrlDisplayBox pollId={data.poll.id} />
+</div>
 {#if !selectedUserId}
   <div>
     <p>Sélectionnez votre nom :</p>
@@ -81,21 +86,23 @@
       <p>Fin : {data.poll.end_date}</p>
     {/if}
 
-    <h2>Créneaux communs</h2>
-    <ul>
-      {#each data.poll.commonSlots as slot}
-        <li>
-          {formatDateSlot(slot.start_date)} - {formatDateSlot(slot.end_date)}
-          <br />
-          {slot.count} participants:
-          <div class="participants-tags">
-            {#each slot.participants_names as p}
-              <span class="tag">{p}</span>
-            {/each}
-          </div>
-        </li>
-      {/each}
-    </ul>
+    {#if data.poll.commonSlots.length > 1}
+      <h2>Créneaux communs</h2>
+      <ul>
+        {#each data.poll.commonSlots as slot}
+          <li>
+            {formatDateSlot(slot.start_date)} - {formatDateSlot(slot.end_date)}
+            <br />
+            {slot.count} participants:
+            <div class="participants-tags">
+              {#each slot.participants_names as p}
+                <span class="tag">{p}</span>
+              {/each}
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
 
     <h2>Mes créneaux</h2>
     <ul>

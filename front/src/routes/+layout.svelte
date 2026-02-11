@@ -11,7 +11,7 @@
 </svelte:head>
 
 <header>
-  <h1>Dispo?</h1>
+  <a href="/"><h1>Dispo?</h1></a>
 </header>
 
 {@render children()}
