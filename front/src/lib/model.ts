@@ -39,8 +39,8 @@ export interface IParticipantEnriched extends IParticipant {
 
 export interface IAvailability {
     id: string;
-    slot_start: Date;
-    slot_end: Date;
+    slot_start: string;
+    slot_end: string;
     participantId?: string;
 }
 

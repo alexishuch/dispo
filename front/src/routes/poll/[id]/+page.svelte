@@ -1,25 +1,70 @@
 <script lang="ts">
   import { createParticipant, getParticipant } from '$lib/api/participants';
+  import Slider from '$lib/components/slider/Slider.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/+page.svelte';
   import { formatDateSlot } from '$lib/dateUtils';
+  import type { IAvailability, IParticipantEnriched } from '$lib/model';
   import AirDatepicker from 'air-datepicker';
   import localeFr from 'air-datepicker/locale/fr';
+  import { onMount } from 'svelte';
   import type { PageProps } from '../$types';
-  import('air-datepicker/air-datepicker.css');
+  import { insertSlot as suggestNewSlot } from '../../../lib/components/slider/addSlot';
 
   let { data }: PageProps = $props();
   let isCreating = $state(false);
   let selectedUserId = $state<string | null>(null);
-  let participant = $derived.by(async () => {
-    if (selectedUserId) {
-      const participant = getParticipant(selectedUserId);
-      return participant;
-    }
-    return null;
-  });
-
+  let participant = $state<IParticipantEnriched | null>(null);
   let newParticipantName = $state<string>('');
   let selectedDate = $state<string>('');
+  let daySlots = $derived.by(() => {
+    const filtered = filterSlotsByDay(
+      participant?.availabilities || [],
+      selectedDate,
+    );
+    console.log('PARENT: filtered slots:', filtered.length);
+    return filtered;
+  });
+
+  function handleAddSlot(dayIso: string): void {
+    const slotSuggestion = suggestNewSlot(daySlots, dayIso);
+    daySlots = slotSuggestion.slots;
+  }
+
+  $effect(() => {
+    const id = selectedUserId;
+    if (!id) {
+      participant = null;
+      return;
+    }
+
+    // prevent older requests from overwriting newer selection
+    let cancelled = false;
+
+    (async () => {
+      const p = await getParticipant(id);
+      if (!cancelled) participant = p;
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  onMount(() => {
+    import('air-datepicker/air-datepicker.css');
+  });
+
+  function filterSlotsByDay(
+    allSlots: IAvailability[],
+    selectedDayIsoString: string,
+  ): IAvailability[] {
+    if (!allSlots || !selectedDayIsoString) {
+      return [];
+    }
+    return allSlots.filter(
+      (slot) => slot.slot_start.substring(0, 10) === selectedDayIsoString,
+    );
+  }
 
   async function handleCreateParticipant() {
     if (newParticipantName) {
@@ -46,8 +91,6 @@
   <h1>Sondage {data.poll.name}</h1>
   <UrlDisplayBox pollId={data.poll.id} />
 </div>
-
-<div id="datepicker2"></div>
 
 {#if !selectedUserId}
   <div>
@@ -101,18 +144,31 @@
           const datepicker = new AirDatepicker(div, {
             inline: true,
             locale: localeFr,
-            dateFormat: 'd/M/yyyy',
-            onSelect: ({ date }) => {
-              selectedDate = date?.toLocaleString() || '';
+            dateFormat: 'yyyy-MM-dd',
+            onSelect: ({ formattedDate }) => {
+              selectedDate = formattedDate?.toString();
             },
           });
         });
       }}
     ></div>
 
-    {#if selectedDate}
-      <p>Selected: {selectedDate}</p>
+    {#if selectedDate && participant?.availabilities}
+      <Slider
+        bind:slots={daySlots}
+        date={selectedDate}
+        addSlot={() => handleAddSlot(selectedDate)}
+      />
     {/if}
+
+    <h2>Mes créneaux</h2>
+    <ul>
+      {#each daySlots as slot}
+        <li>
+          {formatDateSlot(slot.slot_start)} - {formatDateSlot(slot.slot_end)}
+        </li>
+      {/each}
+    </ul>
 
     {#if data.poll.commonSlots.length > 1}
       <h2>Créneaux communs</h2>
@@ -131,15 +187,6 @@
         {/each}
       </ul>
     {/if}
-
-    <h2>Mes créneaux</h2>
-    <ul>
-      {#each participant?.availabilities as slot}
-        <li>
-          {formatDateSlot(slot.slot_start)} - {formatDateSlot(slot.slot_end)}
-        </li>
-      {/each}
-    </ul>
   {/await}
 {/if}
 
@@ -164,5 +211,10 @@
 
   form {
     flex-direction: row;
+  }
+
+  :global(.air-datepicker.-inline-) {
+    margin: auto;
+    width: auto;
   }
 </style>
