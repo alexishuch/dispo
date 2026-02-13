@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { deserializeAvailability, formatDateToPGSlotRange } from 'src/availabilities/date.tools';
 import { Participant } from 'src/participants/models/participant.entity';
 import { QueryFailedError, Repository } from 'typeorm';
-import { CreateAvailabilityDto } from './models/availabilities.dto';
+import { CreateAvailabilityDto, UpdateAvailabilityDto } from './models/availabilities.dto';
 import { IAvailability } from './models/availabilities.interface';
 import { Availability } from './models/availability.entity';
 
@@ -68,6 +68,27 @@ export class AvailabilitiesService {
     const availability = await this.availabilityRepository.findOne({ where: { id }, relations: ['participant'] });
     if (!availability) throw new NotFoundException('Availability not found');
     return deserializeAvailability(availability, true);
+  }
+
+  async update(id: string, updateAvailabilityDto: UpdateAvailabilityDto): Promise<IAvailability> {
+    const availability = await this.availabilityRepository.findOne({ where: { id } });
+    if (!availability) throw new NotFoundException('Availability not found');
+    const slot = formatDateToPGSlotRange(updateAvailabilityDto.slot_start, updateAvailabilityDto.slot_end);
+    this.availabilityRepository.merge(availability, { slot })
+
+    try {
+      const savedAvailability = await this.availabilityRepository.save(availability);
+      // Slots are stored as ranges in Postgres, need to deserialize before returning
+      return deserializeAvailability(savedAvailability);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        error.driverError?.code === '23P01'
+      ) {
+        throw new ConflictException('Participant already has an overlapping or identical slot');
+      }
+      throw error;
+    }
   }
 
   async remove(id: string): Promise<void> {
