@@ -17,11 +17,11 @@ const mergeIntervals = (pairs: PairOfTimestamps[]): PairOfTimestamps[] => {
     return out;
 }; // standard merge-intervals pattern [web:106]
 
-export const insertSlot = (
+export const suggestNewSlot = (
     slots: IAvailability[],
     dayStartUtcIso: string,     // "2025-11-07T00:00:00.000Z"
     durationInMs = HOUR_IN_MILLISECONDS
-): { slots: IAvailability[], inserted: IAvailability | null } => {
+): IAvailability | null => {
     const dayStart = Date.parse(dayStartUtcIso);
     const dayEnd = dayStart + 24 * HOUR_IN_MILLISECONDS;
 
@@ -55,18 +55,13 @@ export const insertSlot = (
     };
 
     const candidate = findCandidate();
-    if (!candidate) return { slots, inserted: null };
+    if (!candidate) return null;
 
     const inserted: IAvailability = {
-        id: Math.random().toString(36).substring(2, 9), // simple random ID generator
+        id: 'temp',
         slot_start: new Date(candidate.start).toISOString(),
         slot_end: new Date(candidate.end).toISOString(),
     };
 
-    // Return updated slots; merge again just to guarantee invariants (optional but safe)
-    const updated = [...slots, inserted].sort(
-        (a, b) => Date.parse(a.slot_start) - Date.parse(b.slot_start)
-    );
-
-    return { slots: updated, inserted };
+    return inserted;
 };

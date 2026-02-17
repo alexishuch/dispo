@@ -2,7 +2,7 @@ import type { IAvailability } from '$lib/model';
 import noUiSlider from 'nouislider';
 
 const HALF_HOUR_STEP = 30 * 60 * 1000;
-const TIME_FORMAT = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
+export const TIME_FORMAT = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
 
 // declare var noUiSlider: any;
 // const slotsListElement: HTMLElement | null = document.getElementById('slotsList');

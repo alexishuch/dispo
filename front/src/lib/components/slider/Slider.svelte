@@ -1,18 +1,32 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { createSlider } from './pollzzz.ts';
+  import { createSlider } from './createSlider.ts';
 
-  //  1. I get an array of availabilities from props.
-  // 2. They should be filtered with filterSlotsByDay.
-  // 3. An attachment should be made on a div #slider, when the availabilities are available and filtered.
-  // 4. In this attachment, I call a createSlider function with filteredAvailabilities.
-  // 5. This function should do that, on change of any handle, the corresponding slot is edited in the array.
-  // 6. When adding a slot, the current array should be taken into account, and edited.
-
-  let { slots = $bindable([]), date, addSlot } = $props();
+  let {
+    slots = $bindable([]),
+    date,
+    addSlot,
+    onSlotUpdate,
+    disabled,
+  } = $props();
   let sliderDiv: HTMLDivElement;
   let lastDate = $state<string>('');
   let lastSlotCount = $state<number>(0);
+
+  $effect(() => {
+    const isSliderVisible = disabled;
+    const slider = (sliderDiv as any)?.noUiSlider;
+
+    if (!slider) {
+      return;
+    }
+
+    if (isSliderVisible) {
+      slider.disable();
+    } else {
+      slider.enable();
+    }
+  });
 
   $inspect(slots).with((type, value) => {
     console.log(
@@ -46,20 +60,11 @@
 
   function handleSliderUpdate(handle: number, handlesValues: number[]): void {
     const slotIndex = Math.floor(handle / 2);
-
-    // Update slots immutably
-    slots = slots.map((slot, i) => {
-      if (i === slotIndex) {
-        return {
-          ...slot,
-          slot_start: new Date(handlesValues[slotIndex * 2]).toISOString(),
-          slot_end: new Date(handlesValues[slotIndex * 2 + 1]).toISOString(),
-        };
-      }
-      return slot;
-    });
-
-    console.log('AFTER update - slots length:', slots.length);
+    const slot = slots[slotIndex];
+    if (!slot) return;
+    const newStart = new Date(handlesValues[slotIndex * 2]).toISOString();
+    const newEnd = new Date(handlesValues[slotIndex * 2 + 1]).toISOString();
+    onSlotUpdate({ ...slot, slot_start: newStart, slot_end: newEnd });
   }
 
   onMount(() => {

@@ -8,7 +8,7 @@
   import localeFr from 'air-datepicker/locale/fr';
   import { onMount } from 'svelte';
   import type { PageProps } from '../$types';
-  import { insertSlot as suggestNewSlot } from '../../../lib/components/slider/addSlot';
+  import type { PageProps } from './$types';
 
   let { data }: PageProps = $props();
   let isCreating = $state(false);
@@ -16,6 +16,7 @@
   let participant = $state<IParticipantEnriched | null>(null);
   let newParticipantName = $state<string>('');
   let selectedDate = $state<string>('');
+  let isChangePending = $state(false);
   let daySlots = $derived.by(() => {
     const filtered = filterSlotsByDay(
       participant?.availabilities || [],
@@ -24,10 +25,55 @@
     console.log('PARENT: filtered slots:', filtered.length);
     return filtered;
   });
+  async function handleAddSlot(dayIso: string): Promise<void> {
+    if (!participant || isChangePending) return;
 
-  function handleAddSlot(dayIso: string): void {
+    isChangePending = true;
+
+    try {
     const slotSuggestion = suggestNewSlot(daySlots, dayIso);
-    daySlots = slotSuggestion.slots;
+      if (!slotSuggestion) return;
+      const createdSlot = await createAvailability(
+        participant.id,
+        slotSuggestion,
+      );
+      participant.availabilities = [...participant.availabilities, createdSlot];
+    } catch (error) {
+      console.error('❌ Failed to create slot:', error);
+    } finally {
+      datepicker?.update({}, { silent: true });
+      isChangePending = false;
+    }
+  }
+
+  async function handleSlotUpdate(
+    slotWithUpdatedValues: IAvailability,
+  ): Promise<void> {
+    console.log('New value:', $state.snapshot(slotWithUpdatedValues));
+    if (!participant) return;
+
+    isChangePending = true;
+
+    try {
+      const existingSlot = participant.availabilities.find(
+        (s) => s.id === slotWithUpdatedValues.id,
+      );
+      if (existingSlot) {
+        existingSlot.slot_start = slotWithUpdatedValues.slot_start;
+        existingSlot.slot_end = slotWithUpdatedValues.slot_end;
+
+        // Queue for save
+        // pendingUpdates.set(slotId, { ...slot });
+        await updateAvailabilities(slotWithUpdatedValues);
+      }
+    } catch (error) {
+      console.error('❌ Failed to update slot:', error);
+    } finally {
+      setTimeout(() => {
+        isChangePending = false;
+        console.log('Done !');
+      }, 1000);
+    }
   }
 
   $effect(() => {
@@ -61,9 +107,11 @@
     if (!allSlots || !selectedDayIsoString) {
       return [];
     }
-    return allSlots.filter(
+    return allSlots
+      .filter(
       (slot) => slot.slot_start.substring(0, 10) === selectedDayIsoString,
-    );
+      )
+      .sort((a, b) => Date.parse(a.slot_start) - Date.parse(b.slot_start));
   }
 
   async function handleCreateParticipant() {
@@ -158,10 +206,12 @@
         bind:slots={daySlots}
         date={selectedDate}
         addSlot={() => handleAddSlot(selectedDate)}
+        onSlotUpdate={(slot: IAvailability) => handleSlotUpdate(slot)}
+        disabled={isChangePending}
       />
     {/if}
 
-    <h2>Mes créneaux</h2>
+    <h2>Mes dispos ce jour là</h2>
     <ul>
       {#each daySlots as slot}
         <li>
