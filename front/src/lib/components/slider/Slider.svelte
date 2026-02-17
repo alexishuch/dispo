@@ -28,17 +28,6 @@
     }
   });
 
-  $inspect(slots).with((type, value) => {
-    console.log(
-      'CHILD slots',
-      type,
-      value.map((s) => ({
-        start: s.slot_start,
-        end: s.slot_end,
-      })),
-    );
-  });
-
   $effect(() => {
     if (!sliderDiv) return;
 
@@ -76,11 +65,6 @@
 
 <div id="slider" bind:this={sliderDiv}></div>
 
-<!-- Optional: List in same component -->
-{#each slots as slot}
-  <div>{slot.slot_start} - {slot.slot_end}</div>
-{/each}
-
 <!-- <div
   id="slider"
   {@attach (div) => {
@@ -95,6 +79,14 @@
   }
 
   #slider {
-    margin: 18px 0;
+    margin: 40px 0 0px 0;
+  }
+
+  :global(div .noUi-horizontal .noUi-handle) {
+    border-radius: 50%;
+    width: 17px;
+    height: 17px;
+    top: -1px;
+    right: -7px;
   }
 </style>

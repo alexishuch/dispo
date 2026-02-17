@@ -4,16 +4,13 @@ import noUiSlider from 'nouislider';
 const HALF_HOUR_STEP = 30 * 60 * 1000;
 export const TIME_FORMAT = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-// declare var noUiSlider: any;
-// const slotsListElement: HTMLElement | null = document.getElementById('slotsList');
-// const addButton = document.getElementById('addSlotButton') as HTMLButtonElement;
-// const dateSelector = document.getElementById('dateSelector') as HTMLInputElement;
-
 function calculateDayTimestampRange(dayIsoStr: string): { dayStart: number; dayEnd: number } {
-    const start: Date = new Date(dayIsoStr)
-    start.setUTCHours(0, 0, 0, 0);
-    const end: Date = new Date(dayIsoStr);
-    end.setUTCHours(23, 59, 59, 999);
+    const start: Date = new Date(dayIsoStr);
+    start.setHours(0, 0, 0, 0);
+
+    const end: Date = new Date(start);
+    end.setDate(start.getDate() + 1);
+    console.log('dayIsoStr', dayIsoStr, start, end)
 
     return {
         dayStart: start.getTime(),

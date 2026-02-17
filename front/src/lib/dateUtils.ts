@@ -1,24 +1,59 @@
 /**
- * Convert ISO date string to Date object
+ * Format ISO date string to HH:mm format
  */
-export function parseISODate(dateString: string | Date): Date {
-    if (dateString instanceof Date) {
-        return dateString;
-    }
-    return new Date(dateString);
-}
-
-/**
- * Format ISO date string to DD-MM-YYYY HH:mm format
- */
-export function formatDateSlot(dateString: string | Date): string {
-    const date = parseISODate(dateString);
-
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
+export function displayTimeFromDate(dateString: string | Date): string {
+    const date = new Date(dateString);
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
+    return `${hours}:${minutes}`;
+}
+
+export function formatSlot(slotStart: string, slotEnd: string) {
+    const slotStartDate = new Date(slotStart);
+    const slotEndDate = new Date(slotEnd)
+
+    const weekdayAndDate =
+        slotStartDate.toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+    const startTime = slotStartDate.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    })
+    const endTime = slotEndDate.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    })
+
+    return `${weekdayAndDate} ${startTime} - ${endTime}`;
+}
+
+export function formatDateToLocale(dateString: string) {
+    return new Date(dateString).toLocaleDateString()
+}
+
+const formatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Paris',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+});
+
+export function convertUTCDateToLocale(utcDate: Date) {
+    const parts = formatter.formatToParts(utcDate);
+    console.log(parts)
+
+    const getPart = (type: string) =>
+        parts.find(p => p.type === type)?.value ?? '';
+
+    const year = getPart('year');
+    const month = getPart('month');
+    const day = getPart('day');
+
+
+    return `${year}-${month}-${day}`;
 }

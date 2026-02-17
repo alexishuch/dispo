@@ -1,25 +1,25 @@
 export interface IPoll {
     id: string;
     name: string;
-    start_date?: Date;
-    end_date?: Date;
-    created_at: Date;
+    start_date?: string;
+    end_date?: string;
+    created_at: string;
 }
 
-export interface IPollEnriched {
+export interface IPollEnriched extends IPoll {
     participants: IParticipant[];
     commonSlots: ICommonSlot[];
 }
 
 export interface ICreatePoll {
     name: string;
-    start_date?: Date;
-    end_date?: Date;
+    start_date?: string;
+    end_date?: string;
 }
 
 export interface ICommonSlot {
-    start_date: Date;
-    end_date: Date;
+    start_date: string;
+    end_date: string;
     count: number;
     participants_names: string[];
 }
