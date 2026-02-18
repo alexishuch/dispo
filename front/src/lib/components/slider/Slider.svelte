@@ -61,7 +61,7 @@
   });
 </script>
 
-<button id="addSlotButton" onclick={() => addSlot()}>Add Slot</button>
+<button id="addSlotButton" onclick={() => addSlot()}>Ajouter un créneau</button>
 
 <div id="slider" bind:this={sliderDiv}></div>
 
@@ -80,5 +80,9 @@
     height: 17px;
     top: -1px;
     right: -7px;
+  }
+
+  :global(.noUi-connect) {
+    background: var(--primary-color) !important;
   }
 </style>

@@ -6,5 +6,5 @@
   <label for="end_date">Date de fin :</label>
   <input id="end_date" name="end_date" type="date" required />
 
-  <button type="submit">Créer le sondage</button>
+  <button type="submit" style="margin-top: 20px">Créer le sondage</button>
 </form>

@@ -1,5 +1,5 @@
 export const TIME_FORMATTER = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false });
-const DATE_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+const DATE_FORMATTER = new Intl.DateTimeFormat('fr-FR', {
     timeZone: 'Europe/Paris',
     year: 'numeric',
     month: '2-digit',
@@ -16,9 +16,9 @@ export function formatSlot(slotStart: string, slotEnd: string, returnDate = true
             month: '2-digit',
             day: '2-digit',
         })} ` : '';
+    const time = TIME_FORMATTER.formatRange(slotStartDate, slotEndDate)
 
-    return `${weekdayAndDate}${TIME_FORMATTER.format(slotStartDate)
-        } - ${TIME_FORMATTER.format(slotEndDate)} `;
+    return weekdayAndDate + time;
 }
 
 export function formatDateToLocale(dateString: string) {

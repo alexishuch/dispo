@@ -37,22 +37,27 @@ main {
 }
 
 /* Typography */
-h1 {
-    font-size: 28px;
+h1,
+h2 {
+    margin: 0.5em 0 0 0;
+    font-size: 36px;
+    letter-spacing: 3px;
     font-weight: 700;
+    font-variant: small-caps;
     color: var(--text-primary);
 }
 
 h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 25px 0 16px 0;
-    color: var(--text-primary);
+    font-size: 30px;
 }
 
 p {
     /* margin: 0 0 12px 0; */
     color: var(--text-secondary);
+}
+
+a {
+    text-decoration: none;
 }
 
 /* Participant selection */
@@ -216,7 +221,7 @@ p:has(+ button) {
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 500px) {
     body {
         padding: 12px;
     }

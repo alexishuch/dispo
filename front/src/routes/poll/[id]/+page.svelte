@@ -176,9 +176,9 @@
 
 <div
   class="poll-header"
-  style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center"
+  style="display: flex; justify-content: space-between; align-items: center"
 >
-  <h1>Sondage {data.poll.name}</h1>
+  <h2>{data.poll.name}</h2>
   <UrlDisplayBox pollId={data.poll.id} />
 </div>
 
@@ -282,7 +282,7 @@
     {/if}
 
     {#if slotsForDay.length}
-      <h2>Mes dispos le {formatDateToLocale(selectedDate)}</h2>
+      <h3>Mes dispos le {formatDateToLocale(selectedDate)}</h3>
       <ul>
         {#each slotsForDay as slot}
           <li>
@@ -297,7 +297,7 @@
     {/if}
 
     {#if data.poll.commonSlots.length > 1}
-      <h2>Créneaux communs</h2>
+      <h3>Créneaux communs</h3>
       <ul>
         {#each data.poll.commonSlots as slot}
           <li>
@@ -338,21 +338,31 @@
     flex-direction: row;
   }
 
-  :global(.air-datepicker.-inline-) {
-    margin: auto;
-    width: auto;
-  }
+  :global {
+    .air-datepicker.-inline- {
+      margin: auto;
+      width: auto;
+    }
 
-  :global(.air-datepicker-cell.-day-) {
-    position: relative;
-  }
+    .air-datepicker-cell.-day- {
+      position: relative;
+    }
 
-  :global(.slot-indicator) {
-    position: absolute;
-    bottom: 2px;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: #cccccc;
+    .air-datepicker-cell.-selected- {
+      background: var(--primary-color) !important;
+    }
+
+    .air-datepicker-cell.-current-:not(.-selected-) {
+      color: var(--primary-color) !important;
+    }
+
+    .slot-indicator {
+      position: absolute;
+      bottom: 2px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: #cccccc;
+    }
   }
 </style>
