@@ -65,14 +65,6 @@
 
 <div id="slider" bind:this={sliderDiv}></div>
 
-<!-- <div
-  id="slider"
-  {@attach (div) => {
-    createSlider(div, slots, date);
-    console.log('Attaching slider to div:', div);
-  }}
-></div> -->
-
 <style>
   button {
     margin: 20px 0;

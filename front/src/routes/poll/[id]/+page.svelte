@@ -8,8 +8,7 @@
   import Slider from '$lib/components/slider/Slider.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/+page.svelte';
   import {
-    convertUTCDateToLocale,
-    displayTimeFromDate,
+    convertDateToZonedYYYYMMDD,
     formatDateToLocale,
     formatSlot,
   } from '$lib/dateUtils';
@@ -21,18 +20,21 @@
 
   let { data }: PageProps = $props();
   let datepicker: AirDatepicker<HTMLDivElement> | null;
-  let isCreating = $state(false);
+
   let selectedUserId = $state<string | null>(null);
   let participant = $state<IParticipantEnriched | null>(null);
   let newParticipantName = $state<string>('');
-  let selectedDate = $state<string>('');
+
+  let isCreating = $state(false);
   let isChangePending = $state(false);
+
+  let selectedDate = $state<string>('');
   let slotsForDay = $derived.by(() => {
+    // Filtering availabilities zoned in below $effect
     const filtered = filterSlotsByDay(
       participant?.availabilities || [],
       selectedDate,
     );
-    console.log('Filtered:', filtered);
     return filtered;
   });
   let daysWithSlots = $derived.by(() => {
@@ -44,6 +46,65 @@
     );
     return new Set(dates);
   });
+
+  $effect(() => {
+    const id = selectedUserId;
+    if (!id) {
+      participant = null;
+      return;
+    }
+
+    let cancelled = false;
+
+    getParticipant(id).then((p) => {
+      if (!cancelled) {
+        participant = p;
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  $effect(() => {
+    if (participant?.availabilities) {
+      participant.availabilities.forEach((slot) => {
+        if (!slot.zonedDate) {
+          // Lazy: compute only if missing
+          slot.zonedDate = convertDateToZonedYYYYMMDD(slot.slot_start);
+        }
+      });
+    }
+  });
+
+  $effect(() => {
+    daysWithSlots;
+
+    if (datepicker?.viewDate) {
+      // Force re-render
+      datepicker.next();
+      datepicker.prev();
+    }
+  });
+
+  onMount(() => {
+    import('air-datepicker/air-datepicker.css');
+  });
+
+  function filterSlotsByDay(
+    allSlots: IAvailability[],
+    selectedDayIsoString: string,
+  ): IAvailability[] {
+    if (!allSlots || !selectedDayIsoString) {
+      return [];
+    }
+    return allSlots
+      .filter((slot) => {
+        return slot.zonedDate === selectedDayIsoString;
+      })
+      .sort((a, b) => Date.parse(a.slot_start) - Date.parse(b.slot_start));
+  }
 
   async function handleAddSlot(dayIso: string): Promise<void> {
     if (!participant || isChangePending) return;
@@ -71,75 +132,26 @@
     if (!participant) return;
     isChangePending = true;
 
+    const existingSlot = participant.availabilities.find(
+      (s) => s.id === slotWithUpdatedValues.id,
+    );
+    if (!existingSlot) return;
+    const slotSnapshot = $state.snapshot(existingSlot);
+
     try {
-      const existingSlot = participant.availabilities.find(
-        (s) => s.id === slotWithUpdatedValues.id,
-      );
       if (existingSlot) {
         existingSlot.slot_start = slotWithUpdatedValues.slot_start;
         existingSlot.slot_end = slotWithUpdatedValues.slot_end;
-
         await updateAvailabilities(slotWithUpdatedValues);
       }
     } catch (error) {
-      console.error('❌ Failed to update slot:', error);
+      Object.assign(existingSlot, slotSnapshot);
     } finally {
       setTimeout(() => {
         isChangePending = false;
         console.log('Done !');
       }, 1000);
     }
-  }
-
-  $effect(() => {
-    const id = selectedUserId;
-    if (!id) {
-      participant = null;
-      return;
-    }
-
-    let cancelled = false;
-
-    getParticipant(id).then((p) => {
-      if (!cancelled) {
-        participant = p;
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  });
-
-  $effect(() => {
-    daysWithSlots; // Read to establish dependency
-
-    if (datepicker?.viewDate) {
-      console.log('daysWithSlots changed, refreshing calendar');
-      // Force re-render
-      datepicker.next();
-      datepicker.prev();
-    }
-  });
-
-  onMount(() => {
-    import('air-datepicker/air-datepicker.css');
-  });
-
-  function filterSlotsByDay(
-    allSlots: IAvailability[],
-    selectedDayIsoString: string,
-  ): IAvailability[] {
-    if (!allSlots || !selectedDayIsoString) {
-      return [];
-    }
-    return allSlots
-      .filter((slot) => {
-        const utcDate = new Date(slot.slot_start);
-        const localeDate = convertUTCDateToLocale(utcDate);
-        return localeDate === selectedDayIsoString;
-      })
-      .sort((a, b) => Date.parse(a.slot_start) - Date.parse(b.slot_start));
   }
 
   async function handleCreateParticipant() {
@@ -153,6 +165,8 @@
         data.poll.participants = [...data.poll.participants, newParticipant];
         selectedUserId = newParticipant.id;
         newParticipantName = '';
+      } catch (error) {
+        console.error('❌ Failed to create participant:', error);
       } finally {
         isCreating = false;
       }
@@ -234,7 +248,6 @@
             dateFormat: 'yyyy-MM-dd',
             onSelect: ({ formattedDate }) => {
               selectedDate = formattedDate?.toString();
-              console.log('Selected date:', selectedDate);
             },
             onRenderCell({ date, cellType }) {
               const dateStr = date.toDateString();
@@ -259,15 +272,13 @@
     ></div>
 
     {#if selectedDate && participant?.availabilities}
-      <div class="slider-wrapper">
-        <Slider
-          bind:slots={slotsForDay}
-          date={selectedDate}
-          addSlot={() => handleAddSlot(selectedDate)}
-          onSlotUpdate={(slot: IAvailability) => handleSlotUpdate(slot)}
-          disabled={isChangePending}
-        />
-      </div>
+      <Slider
+        slots={slotsForDay}
+        date={selectedDate}
+        addSlot={() => handleAddSlot(selectedDate)}
+        onSlotUpdate={(slot: IAvailability) => handleSlotUpdate(slot)}
+        disabled={isChangePending}
+      />
     {/if}
 
     {#if slotsForDay.length}
@@ -275,9 +286,7 @@
       <ul>
         {#each slotsForDay as slot}
           <li>
-            {displayTimeFromDate(slot.slot_start)} - {displayTimeFromDate(
-              slot.slot_end,
-            )}
+            {formatSlot(slot.slot_start, slot.slot_end, false)}
           </li>
         {/each}
       </ul>
@@ -308,7 +317,6 @@
 {/if}
 
 <style>
-  /* Participant tags */
   .participants-tags {
     display: inline-flex;
     flex-wrap: wrap;
@@ -336,7 +344,7 @@
   }
 
   :global(.air-datepicker-cell.-day-) {
-    position: relative; /* For absolute positioning of dot */
+    position: relative;
   }
 
   :global(.slot-indicator) {
@@ -346,9 +354,5 @@
     height: 4px;
     border-radius: 50%;
     background-color: #cccccc;
-  }
-
-  .slider-wrapper {
-    margin: 0 0;
   }
 </style>

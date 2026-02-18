@@ -41,7 +41,8 @@ export interface IAvailability {
     id: string;
     slot_start: string;
     slot_end: string;
-    participantId?: string;
+    participantId: string;
+    zonedDate?: string;
 }
 
 // export interface ICreateAvailability extends Omit<IAvailability, 'id'> { }
