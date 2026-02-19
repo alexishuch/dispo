@@ -186,6 +186,64 @@ describe('AvailabilitiesService', () => {
     });
   });
 
+  describe('findCommonSlots', () => {
+    it('should return common slots for a poll', async () => {
+      const poll = await pollRepository.save({ name: 'Overlap Poll' });
+      const john = await participantRepository.save({ name: 'John', poll });
+      const jane = await participantRepository.save({ name: 'Jane', poll });
+      await availabilityRepository.save([
+        {
+          participant: john,
+          slot: '{["2025-01-01 09:00:00+00", "2025-01-01 11:30:00+00"]}',
+        },
+        {
+          participant: john,
+          slot: '{["2025-01-01 13:00:00+00", "2025-01-01 15:00:00+00"]}',
+        },
+        {
+          participant: jane,
+          slot: '{["2025-01-01 10:00:00+00", "2025-01-01 12:00:00+00"]}',
+        },
+        {
+          participant: jane,
+          slot: '{["2025-01-01 14:00:00+00", "2025-01-01 16:00:00+00"]}',
+        },
+      ]);
+
+      const result = await service.findCommonSlots(poll.id);
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            start_date: new Date('2025-01-01T10:00:00.000Z'),
+            end_date: new Date('2025-01-01T11:30:00.000Z'),
+            count: 2,
+            participants_names: ['Jane', 'John'],
+          }),
+          expect.objectContaining({
+            start_date: new Date('2025-01-01T14:00:00.000Z'),
+            end_date: new Date('2025-01-01T15:00:00.000Z'),
+            count: 2,
+            participants_names: ['Jane', 'John'],
+          }),
+        ]),
+      );
+    });
+
+    it('should return empty array when no common slots exist', async () => {
+      const poll = await pollRepository.save({ name: 'Lonely Poll' });
+      const john = await participantRepository.save({ name: 'John', poll });
+      await availabilityRepository.save({
+        participant: john,
+        slot: '{["2025-01-02 09:00:00+00", "2025-01-02 10:00:00+00")}'
+      });
+
+      const result = await service.findCommonSlots(poll.id);
+
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('remove', () => {
     it('should remove an availability', async () => {
       const poll = await pollRepository.save(testPollData);

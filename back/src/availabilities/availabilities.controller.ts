@@ -16,6 +16,11 @@ export class AvailabilitiesController {
     return this.availabilitiesService.findOne(id);
   }
 
+  @Get(':id/common')
+  find(@Param('id') id: string) {
+    return this.availabilitiesService.findCommonSlots(id);
+  }
+
   @Patch(':id')
   patch(@Param('id') id: string, @Body() updateAvailabilityDto: UpdateAvailabilityDto) {
     return this.availabilitiesService.update(id, updateAvailabilityDto)

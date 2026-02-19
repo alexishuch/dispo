@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { AvailabilitiesService } from 'src/availabilities/availabilities.service';
 import { Availability } from 'src/availabilities/models/availability.entity';
 import { Participant } from 'src/participants/models/participant.entity';
 import { clearTestData, createTestDataSource } from 'test/test-db.helper';
@@ -15,6 +16,7 @@ describe('PollsService', () => {
   let participantRepository: Repository<Participant>;
   let availabilityRepository: Repository<Availability>;
   let dataSource: DataSource;
+  let availabilitiesService: AvailabilitiesService
 
   beforeEach(async () => {
     dataSource = await createTestDataSource();
@@ -34,6 +36,10 @@ describe('PollsService', () => {
           provide: getRepositoryToken(Availability),
           useValue: dataSource.getRepository(Availability),
         },
+        {
+          provide: AvailabilitiesService,
+          useValue: { findCommonSlots: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -41,6 +47,7 @@ describe('PollsService', () => {
     pollRepository = module.get<Repository<Poll>>(getRepositoryToken(Poll));
     participantRepository = module.get<Repository<Participant>>(getRepositoryToken(Participant));
     availabilityRepository = module.get<Repository<Availability>>(getRepositoryToken(Availability));
+    availabilitiesService = module.get<AvailabilitiesService>(AvailabilitiesService);
   });
 
   afterEach(async () => {
@@ -125,6 +132,7 @@ describe('PollsService', () => {
           slot: '{["2025-01-01 11:00:00+00", "2025-01-01 13:00:00+00")}'
         },
       ]);
+      jest.spyOn(availabilitiesService, 'findCommonSlots').mockResolvedValueOnce([{ count: 2, participants_names: ["Jane", "John"], start_date: new Date(), end_date: new Date() }])
 
       const result = await service.findOneComputed(poll.id);
 
@@ -146,64 +154,6 @@ describe('PollsService', () => {
       const result = service.findOneComputed('abcd1234');
 
       await expect(result).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe('findCommonSlots', () => {
-    it('should return common slots for a poll', async () => {
-      const poll = await pollRepository.save({ name: 'Overlap Poll' });
-      const john = await participantRepository.save({ name: 'John', poll });
-      const jane = await participantRepository.save({ name: 'Jane', poll });
-      await availabilityRepository.save([
-        {
-          participant: john,
-          slot: '{["2025-01-01 09:00:00+00", "2025-01-01 11:30:00+00"]}',
-        },
-        {
-          participant: john,
-          slot: '{["2025-01-01 13:00:00+00", "2025-01-01 15:00:00+00"]}',
-        },
-        {
-          participant: jane,
-          slot: '{["2025-01-01 10:00:00+00", "2025-01-01 12:00:00+00"]}',
-        },
-        {
-          participant: jane,
-          slot: '{["2025-01-01 14:00:00+00", "2025-01-01 16:00:00+00"]}',
-        },
-      ]);
-
-      const result = await service.findCommonSlots(poll.id);
-
-      expect(result).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            start_date: new Date('2025-01-01T10:00:00.000Z'),
-            end_date: new Date('2025-01-01T11:30:00.000Z'),
-            count: 2,
-            participants_names: ['Jane', 'John'],
-          }),
-          expect.objectContaining({
-            start_date: new Date('2025-01-01T14:00:00.000Z'),
-            end_date: new Date('2025-01-01T15:00:00.000Z'),
-            count: 2,
-            participants_names: ['Jane', 'John'],
-          }),
-        ]),
-      );
-    });
-
-    it('should return empty array when no common slots exist', async () => {
-      const poll = await pollRepository.save({ name: 'Lonely Poll' });
-      const john = await participantRepository.save({ name: 'John', poll });
-      await availabilityRepository.save({
-        participant: john,
-        slot: '{["2025-01-02 09:00:00+00", "2025-01-02 10:00:00+00")}'
-      });
-
-      const result = await service.findCommonSlots(poll.id);
-
-      expect(result).toEqual([]);
     });
   });
 
