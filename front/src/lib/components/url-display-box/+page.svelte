@@ -54,6 +54,7 @@
     background-color: white;
     cursor: pointer;
     font-size: 1.2rem;
+    max-width: 4.5rem;
   }
 
   .copy-button:hover {
@@ -62,5 +63,12 @@
 
   .copy-button:active {
     background-color: #e0e0e0;
+  }
+
+  @media (max-width: 500px) {
+    .url-container {
+      width: 100%;
+      margin-top: 0.75rem;
+    }
   }
 </style>

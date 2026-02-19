@@ -24,11 +24,13 @@ body {
     background: var(--surface);
     margin: 0;
     padding: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Main container */
 main {
-    max-width: 800px;
     margin: 0 auto;
     background: var(--background);
     padding: 32px;
@@ -39,16 +41,15 @@ main {
 /* Typography */
 h1,
 h2 {
-    margin: 0.5em 0 0 0;
-    font-size: 36px;
+    margin: 0;
     letter-spacing: 3px;
     font-weight: 700;
     font-variant: small-caps;
     color: var(--text-primary);
 }
 
-h2 {
-    font-size: 30px;
+h1 {
+    font-size: 2em;
 }
 
 p {

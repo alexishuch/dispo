@@ -60,3 +60,16 @@ export async function updateAvailabilities(slot: IAvailability): Promise<IAvaila
 
     return await res.json();
 }
+
+export async function deleteAvailability(slotId: string): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/availabilities/${slotId}`, {
+        method: 'DELETE',
+    });
+
+    if (!res.ok) {
+        console.error(res)
+        const text = await res.text();
+        throw new Error(text || `Failed to delete availability: ${res.status}`);
+    }
+}
+
