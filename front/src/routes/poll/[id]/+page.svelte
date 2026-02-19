@@ -2,6 +2,7 @@
   import {
     createAvailability,
     deleteAvailability,
+    getCommonAvailabilities,
     updateAvailabilities,
   } from '$lib/api/availabilities';
   import { createParticipant, getParticipant } from '$lib/api/participants';
@@ -149,6 +150,7 @@
         existingSlot.slot_start = slotWithUpdatedValues.slot_start;
         existingSlot.slot_end = slotWithUpdatedValues.slot_end;
         await updateAvailabilities(slotWithUpdatedValues);
+        commonSlots = await getCommonAvailabilities(data.poll.id);
       }
     } catch (error) {
       console.log('❌ Failed to update slot', error);
@@ -157,7 +159,7 @@
       setTimeout(() => {
         isChangePending = false;
         console.log('Done !');
-      }, 1000);
+      });
     }
   }
 
@@ -210,7 +212,7 @@
 
 <div id="poll-header">
   <div id="poll-info">
-  <h2>{data.poll.name}</h2>
+    <h2>{data.poll.name}</h2>
     {#if data.poll.start_date}
       <p style="display: inline;">
         Début : {formatDateToLocale(data.poll.start_date)}
@@ -340,21 +342,21 @@
     {/if}
 
     {#if commonSlots.length > 0}
-    <h3>Créneaux communs</h3>
-    <ul>
+      <h3>Créneaux communs</h3>
+      <ul>
         {#each commonSlots as slot}
-        <li>
-          {formatSlot(slot.start_date, slot.end_date)}
-          <br />
-          {slot.count} participants:
-          <div class="participants-tags">
-            {#each slot.participants_names as p}
-              <span class="tag">{p}</span>
-            {/each}
-          </div>
-        </li>
-      {/each}
-    </ul>
+          <li>
+            {formatSlot(slot.start_date, slot.end_date)}
+            <br />
+            {slot.count} participants:
+            <div class="participants-tags">
+              {#each slot.participants_names as p}
+                <span class="tag">{p}</span>
+              {/each}
+            </div>
+          </li>
+        {/each}
+      </ul>
     {/if}
   {/await}
 {/if}
