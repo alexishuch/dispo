@@ -5,7 +5,11 @@
     getCommonAvailabilities,
     updateAvailabilities,
   } from '$lib/api/availabilities';
-  import { createParticipant, getParticipant } from '$lib/api/participants';
+  import {
+    createParticipant,
+    deleteParticipant,
+    getParticipant,
+  } from '$lib/api/participants';
   import { suggestNewSlot } from '$lib/components/slider/addSlot';
   import Slider from '$lib/components/slider/Slider.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/+page.svelte';
@@ -31,7 +35,7 @@
   let participant = $state<IParticipantEnriched | null>(null);
   let newParticipantName = $state<string>('');
 
-  let isCreating = $state(false);
+  let isUpdatingParticipants = $state(false);
   let isChangePending = $state(false);
 
   let selectedDate = $state<string>('');
@@ -192,7 +196,7 @@
 
   async function handleCreateParticipant() {
     if (newParticipantName) {
-      isCreating = true;
+      isUpdatingParticipants = true;
       try {
         const newParticipant = await createParticipant(
           data.poll.id,
@@ -204,8 +208,38 @@
       } catch (error) {
         console.error('❌ Failed to create participant:', error);
       } finally {
-        isCreating = false;
+        isUpdatingParticipants = false;
       }
+    }
+  }
+
+  async function handleParticipantDeletion() {
+    if (!selectedUserId) return;
+    isUpdatingParticipants = true;
+
+    const existingParticipantIndex = data.poll.participants.findIndex(
+      (p) => p.id === selectedUserId,
+    );
+    if (existingParticipantIndex === -1) return;
+    const participantSnapshot = $state.snapshot(
+      data.poll.participants[existingParticipantIndex],
+    );
+
+    data.poll.participants.splice(existingParticipantIndex, 1);
+
+    try {
+      await deleteParticipant(selectedUserId);
+      selectedUserId = null;
+      selectedDate = '';
+    } catch (error) {
+      data.poll.participants.splice(
+        existingParticipantIndex,
+        0,
+        participantSnapshot,
+      );
+      console.error('❌ Failed to delete participant:', error);
+    } finally {
+      isUpdatingParticipants = false;
     }
   }
 </script>
@@ -243,9 +277,13 @@
     {/each}
 
     <form onsubmit={handleCreateParticipant}>
-      <input bind:value={newParticipantName} disabled={isCreating} required />
-      <button type="submit" disabled={isCreating}>
-        {isCreating ? 'Création...' : 'Créer'}
+      <input
+        bind:value={newParticipantName}
+        disabled={isUpdatingParticipants}
+        required
+      />
+      <button type="submit" disabled={isUpdatingParticipants}>
+        {isUpdatingParticipants ? 'Création...' : 'Créer'}
       </button>
     </form>
   </div>
@@ -255,6 +293,7 @@
       <p>
         Participant sélectionné : {participant?.name}
       </p>
+      <div class="buttons">
       <button
         onclick={() => {
           selectedUserId = null;
@@ -263,6 +302,15 @@
       >
         Changer de participant
       </button>
+        <button
+          onclick={() => handleParticipantDeletion()}
+          disabled={isUpdatingParticipants}
+        >
+          {isUpdatingParticipants
+            ? 'Suppression...'
+            : 'Supprimer le participant'}
+        </button>
+      </div>
     </div>
 
     <div
@@ -378,7 +426,10 @@
     gap: 16px;
     justify-content: space-between;
     align-items: center;
-    margin: 0.6rem 0 1rem 0;
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
   }
 
   .participants-tags {
@@ -461,7 +512,10 @@
     }
 
     #participant-header {
-      margin: 0.5rem 0 2rem 0;
+      .buttons {
+        width: 65%;
+        flex-direction: column;
+      }
     }
 
     #poll-info {

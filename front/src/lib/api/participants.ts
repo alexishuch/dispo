@@ -26,3 +26,14 @@ export async function getParticipant(participantId: string): Promise<IParticipan
 
     return await res.json();
 }
+
+export async function deleteParticipant(participantId: string): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/participants/${participantId}`, {
+        method: 'DELETE'
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text);
+    }
+}
