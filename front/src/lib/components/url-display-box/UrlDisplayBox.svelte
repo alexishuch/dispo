@@ -5,11 +5,9 @@
   let url = $derived(API_BASE_URL + '/polls/' + pollId);
   let showCopied = $state(false);
 
-  // Copy to clipboard function
   async function copyToClipboard() {
     try {
       await navigator.clipboard.writeText(url);
-      // Optional: Add visual feedback
       showCopied = true;
       setTimeout(() => (showCopied = false), 2000);
     } catch (err) {
@@ -34,7 +32,7 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
-    width: 40%;
+    width: 50%;
   }
 
   .url-input {
@@ -45,6 +43,8 @@
     background-color: #f5f5f5;
     font-family: monospace;
     font-size: 0.9rem;
+    text-align: left;
+    direction: rtl;
   }
 
   .copy-button {
@@ -53,8 +53,7 @@
     border-radius: 4px;
     background-color: white;
     cursor: pointer;
-    font-size: 1.2rem;
-    max-width: 4.5rem;
+    max-width: 4rem;
   }
 
   .copy-button:hover {
@@ -65,10 +64,10 @@
     background-color: #e0e0e0;
   }
 
-  @media (max-width: 500px) {
+  @media (max-width: 650px) {
     .url-container {
-      width: 100%;
-      margin-top: 0.75rem;
+      width: 90%;
+      margin-top: 1rem;
     }
   }
 </style>

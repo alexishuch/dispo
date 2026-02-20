@@ -12,17 +12,13 @@
   } from '$lib/api/participants';
   import { suggestNewSlot } from '$lib/components/slider/addSlot';
   import Slider from '$lib/components/slider/Slider.svelte';
-  import UrlDisplayBox from '$lib/components/url-display-box/+page.svelte';
+  import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
   import {
     convertDateToZonedYYYYMMDD,
     formatDateToLocale,
     formatSlot,
   } from '$lib/dateUtils';
-  import type {
-    IAvailability,
-    ICommonSlot,
-    IParticipantEnriched,
-  } from '$lib/model';
+  import type { IAvailability, IParticipantEnriched } from '$lib/model';
   import AirDatepicker from 'air-datepicker';
   import localeFr from 'air-datepicker/locale/fr';
   import { onMount, untrack } from 'svelte';
@@ -40,7 +36,6 @@
 
   let selectedDate = $state<string>('');
   let slotsForDay = $derived.by(() => {
-    console.log('slotsForDay');
     return filterSlotsByDay(participant?.availabilities || [], selectedDate);
   });
   let daysWithSlots = $derived.by(() => {
@@ -52,7 +47,7 @@
     );
     return new Set(dates);
   });
-  let commonSlots = $state<ICommonSlot[]>(data.poll.commonSlots);
+  let commonSlots = $derived(data.poll.commonSlots);
 
   $effect(() => {
     const id = selectedUserId;
@@ -263,7 +258,11 @@
 
 {#if !selectedUserId}
   <div>
-    <p>Sélectionnez votre nom :</p>
+    {#if !data.poll.participants.length}
+      <p>Saisissez votre nom :</p>
+    {:else}
+      <p>Sélectionnez votre nom :</p>
+    {/if}
 
     {#each data.poll.participants as participant}
       <label>
@@ -294,14 +293,14 @@
         Participant sélectionné : {participant?.name}
       </p>
       <div class="buttons">
-      <button
-        onclick={() => {
-          selectedUserId = null;
-          selectedDate = '';
-        }}
-      >
-        Changer de participant
-      </button>
+        <button
+          onclick={() => {
+            selectedUserId = null;
+            selectedDate = '';
+          }}
+        >
+          Changer de participant
+        </button>
         <button
           onclick={() => handleParticipantDeletion()}
           disabled={isUpdatingParticipants}
@@ -334,6 +333,18 @@
             dateFormat: 'yyyy-MM-dd',
             onSelect: ({ formattedDate }) => {
               selectedDate = formattedDate?.toString();
+
+              const spacingNeeded = window.innerHeight;
+              document.body.style.paddingBottom = `${spacingNeeded}px`;
+              const top = div.getBoundingClientRect().top + window.scrollY;
+              window.scrollTo({ top, behavior: 'smooth' });
+              window.addEventListener(
+                'scrollend',
+                () => {
+                  document.body.style.paddingBottom = '';
+                },
+                { once: true },
+              );
             },
             onRenderCell({ date, cellType }) {
               const dateStr = date.toDateString();
@@ -375,7 +386,7 @@
             {formatSlot(slot.slot_start, slot.slot_end, false)}
             <button
               onclick={() => deleteSlot(slot.id)}
-              class="delete-button"
+              class="slot-delete-button"
               title="Supprimer ce créneau"
             >
               🗑️
@@ -396,7 +407,7 @@
           <li>
             {formatSlot(slot.start_date, slot.end_date)}
             <br />
-            {slot.count} participants:
+            {slot.count} participants :
             <div class="participants-tags">
               {#each slot.participants_names as p}
                 <span class="tag">{p}</span>
@@ -414,7 +425,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 1em;
+    margin: 1em 0 1.5rem 0;
   }
 
   #poll-info {
@@ -423,13 +434,32 @@
 
   #participant-header {
     display: flex;
-    gap: 16px;
     justify-content: space-between;
     align-items: center;
+    gap: 30px;
+    margin: 0.6rem 0 0.5rem 0;
+
+    & p {
+      margin-bottom: 0;
+    }
+
     .buttons {
       display: flex;
-      gap: 10px;
+      gap: 15px;
     }
+  }
+
+  #datepicker {
+    padding-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Participant info section */
+  p:has(+ button) {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
   }
 
   .participants-tags {
@@ -461,6 +491,7 @@
       background-color: white;
       cursor: pointer;
       font-size: 1.2rem;
+      width: 3.5rem;
 
       &:hover {
         background-color: #f0f0f0;
@@ -474,6 +505,10 @@
 
   form {
     flex-direction: row;
+
+    & button {
+      min-width: 20%;
+    }
   }
 
   :global {
@@ -504,17 +539,35 @@
     }
   }
 
-  @media (max-width: 500px) {
+  @media (max-width: 650px) {
+    button {
+      padding: 10px;
+    }
+
     #poll-header,
     #participant-header {
       flex-direction: column;
       gap: 0px;
+      margin-top: 0;
     }
 
     #participant-header {
       .buttons {
         width: 65%;
+        max-width: 300px;
         flex-direction: column;
+      }
+
+      & p {
+        margin-bottom: 1rem;
+      }
+    }
+
+    form {
+      flex-direction: column;
+
+      & input {
+        margin-bottom: 1rem;
       }
     }
 

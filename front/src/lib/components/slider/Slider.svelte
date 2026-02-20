@@ -67,11 +67,11 @@
 
 <style>
   button {
-    margin: 20px 0;
+    margin-bottom: 1.25rem;
   }
 
   #slider {
-    margin: 40px 0 0px 0;
+    margin: 35px 0 0px 0;
   }
 
   :global(div .noUi-horizontal .noUi-handle) {
