@@ -13,6 +13,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-node": "^5.5.4",
 		"@sveltejs/kit": "^2.50.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"svelte": "^5.48.2",
@@ -24,7 +25,6 @@
 		"esbuild": "0.26.0"
 	},
 	"dependencies": {
-		"air-datepicker": "^3.6.0",
-		"nouislider": "^15.8.1"
+		"air-datepicker": "^3.6.0"
 	}
 }

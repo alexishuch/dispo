@@ -1,7 +1,7 @@
 services:
-  postgres:
-    image: postgres:18.1-alpine
-    platform: linux/arm/v7
+  dispo_postgres:
+    image: postgres:18.3-alpine
+    platform: linux/arm64/v8
     ports:
       - "5432:5432"
     environment:
@@ -9,12 +9,12 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - postgres_:/var/lib/postgresql/data
+      - dispo_data:/var/lib/postgresql/data
       - ./back/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
 
-  nestjs:
-    platform: linux/arm/v7
+  dispo_nestjs:
+    platform: linux/arm64/v8
     build:
       context: ./back
     ports:
@@ -24,8 +24,21 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
+      - dispo_postgres
+    restart: unless-stopped
+
+  dispo_svelte:
+    platform: linux/arm64/v8
+    build:
+      context: ./front
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
     restart: unless-stopped
 
 volumes:
-  postgres_: {}
+  dispo_data: 
+
+networks:
+  dispo:
