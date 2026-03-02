@@ -9,8 +9,13 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - dispo_data:/var/lib/postgresql/data
-      - ./back/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - type: volume
+        source: dispo_
+        target: /var/lib/postgresql
+      - type: bind
+        source: ./back/init.sql
+        target: /docker-entrypoint-initdb.d/init.sql
+        read_only: true
     restart: unless-stopped
 
   dispo_nestjs:
@@ -31,6 +36,8 @@ services:
     platform: linux/arm64/v8
     build:
       context: ./front
+    environment:
+      ORIGIN: "${PUBLIC_API_BASE_URL}:3001"
     ports:
       - "3001:3001"
     env_file:
@@ -38,7 +45,8 @@ services:
     restart: unless-stopped
 
 volumes:
-  dispo_data: 
+  dispo_:
+    name: dispo_data
 
 networks:
   dispo:

@@ -4,7 +4,9 @@ import { API_BASE_URL } from "./baseUrl";
 type Fetch = typeof fetch;
 
 export async function createPoll(name: string, start_date: string, end_date: string): Promise<IPoll> {
-    const res = await fetch(`${API_BASE_URL}/polls`, {
+    const url = new URL('/polls', API_BASE_URL)
+    console.log(`Creating ${url}`)
+    const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, start_date, end_date })
@@ -19,8 +21,9 @@ export async function createPoll(name: string, start_date: string, end_date: str
 }
 
 export async function getPoll(id: string, fetch: Fetch): Promise<IPollEnriched> {
-    console.log(`Fetching ${API_BASE_URL}/polls/${id}/computed`)
-    const res = await fetch(`${API_BASE_URL}/polls/${id}/computed`);
+    const url = new URL(`/polls/${id}/computed`, API_BASE_URL)
+    console.log(`Fetching ${url}`)
+    const res = await fetch(url);
 
     if (!res.ok) {
         const text = await res.text();
