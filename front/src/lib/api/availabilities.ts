@@ -1,4 +1,4 @@
-import type { IAvailability, ICommonSlot } from "$lib/model";
+import type { IAvailability, ICommonSlot, ICreateAvailability } from "$lib/model";
 import { API_BASE_URL } from "./baseUrl";
 
 export async function getAvailabilities(participantId: string): Promise<IAvailability[]> {
@@ -19,7 +19,7 @@ export async function getCommonAvailabilities(participantId: string): Promise<IC
     return await res.json();
 }
 
-export async function createAvailability(participantId: string, slot: IAvailability): Promise<IAvailability> {
+export async function createAvailability(participantId: string, slot: ICreateAvailability): Promise<IAvailability> {
     const { slot_start, slot_end } = slot;
     const res = await fetch(`${API_BASE_URL}/availabilities`, {
         method: 'POST',
