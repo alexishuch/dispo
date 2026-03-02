@@ -334,17 +334,12 @@
             onSelect: ({ formattedDate }) => {
               selectedDate = formattedDate?.toString();
 
-              const spacingNeeded = window.innerHeight;
-              document.body.style.paddingBottom = `${spacingNeeded}px`;
+              if (window.innerWidth < 768) {
+                setTimeout(() => {
               const top = div.getBoundingClientRect().top + window.scrollY;
               window.scrollTo({ top, behavior: 'smooth' });
-              window.addEventListener(
-                'scrollend',
-                () => {
-                  document.body.style.paddingBottom = '';
-                },
-                { once: true },
-              );
+                }, 200); // browser focus-scroll typically finishes within 100–300ms
+              }
             },
             onRenderCell({ date, cellType }) {
               const dateStr = date.toDateString();

@@ -1,8 +1,24 @@
 <script lang="ts">
   import favicon from '$lib/assets/favicon.svg';
+  import { onMount } from 'svelte';
   import '../app.css';
 
   let { children } = $props();
+
+  onMount(() => {
+    const onTouchMove = (e) => {
+      if (e.scale !== 1) e.preventDefault();
+    };
+    const onTouchStart = (e) => {
+      if (e.touches.length > 1) e.preventDefault();
+    };
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchstart', onTouchStart, { passive: false });
+    return () => {
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchstart', onTouchStart);
+    };
+  });
 </script>
 
 <svelte:head>
