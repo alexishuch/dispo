@@ -9,8 +9,7 @@
     deleteParticipant,
     getParticipant,
   } from '$lib/api/participants';
-  import { suggestNewSlot } from '$lib/components/slider/addSlot';
-  import Slider from '$lib/components/slider/Slider.svelte';
+  import Modal from '$lib/components/modal/Modal.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
   import TimePicker from '$lib/components/wheeltest/TimePicker.svelte';
   import {
@@ -19,6 +18,10 @@
     formatSlot,
   } from '$lib/dateUtils';
   import type {
+    IAvailability,
+    ICreateAvailability,
+    IParticipantEnriched,
+  } from '$lib/model';
   import AirDatepicker from 'air-datepicker';
   import localeFr from 'air-datepicker/locale/fr';
   import { onMount, untrack } from 'svelte';
@@ -33,6 +36,8 @@
 
   let isUpdatingParticipants = $state(false);
   let isChangePending = $state(false);
+  let isAddingSlot = $state(false);
+  let isDeletingParticipant = $state(false);
 
   let selectedDate = $state<string>('');
   let slotsForDay = $derived.by(() => {
@@ -49,6 +54,7 @@
   });
   let commonSlots = $derived(data.poll.commonSlots);
   let selectedStartDateTime = $state<Date | null>(null);
+  let selectedEndDateTime = $state<Date | null>(null);
 
   $effect(() => {
     const id = selectedUserId;
@@ -108,9 +114,10 @@
       .sort((a, b) => Date.parse(a.slot_start) - Date.parse(b.slot_start));
   }
 
-  async function handleAddSlot(dayIso: string): Promise<void> {
+  async function handleAddSlot(): Promise<void> {
     if (!participant || isChangePending) return;
     if (!selectedStartDateTime || !selectedEndDateTime || !selectedUserId)
+      return;
 
     isChangePending = true;
 
@@ -205,6 +212,7 @@
         participantSnapshot,
       );
       console.error('❌ Failed to delete participant:', error);
+      throw error;
     } finally {
       isUpdatingParticipants = false;
     }
@@ -227,6 +235,14 @@
   </div>
   <UrlDisplayBox pollId={data.poll.id} />
 </div>
+
+<Modal
+  bind:showModal={isDeletingParticipant}
+  emoji={'⚠️'}
+  pollId={data.poll.id}
+  callback={handleParticipantDeletion}
+  >Souhaitez-vous vraiment supprimer le participant et ses disponibilités ?</Modal
+>
 
 {#if !selectedUserId}
   <div>
@@ -271,15 +287,13 @@
             selectedDate = '';
           }}
         >
-          Changer de participant
+          Changer
         </button>
         <button
-          onclick={() => handleParticipantDeletion()}
+          onclick={() => (isDeletingParticipant = true)}
           disabled={isUpdatingParticipants}
         >
-          {isUpdatingParticipants
-            ? 'Suppression...'
-            : 'Supprimer le participant'}
+          {isUpdatingParticipants ? 'Suppression...' : 'Supprimer'}
         </button>
       </div>
     </div>
@@ -308,8 +322,8 @@
 
               if (window.innerWidth < 768) {
                 setTimeout(() => {
-              const top = div.getBoundingClientRect().top + window.scrollY;
-              window.scrollTo({ top, behavior: 'smooth' });
+                  const top = div.getBoundingClientRect().top + window.scrollY;
+                  window.scrollTo({ top, behavior: 'smooth' });
                 }, 200); // browser focus-scroll typically finishes within 100–300ms
               }
             },
@@ -336,7 +350,31 @@
     ></div>
 
     {#if selectedDate && participant?.availabilities}
+      <div id="day-header">
+        <h3>Mes dispos le {formatDateToLocale(selectedDate)}</h3>
+        {#if !isAddingSlot}
+          <button
+            id="addSlotButton"
+            onclick={() => {
+              isAddingSlot = true;
+            }}>+ Ajouter</button
+          >
+        {:else}
+          <button id="validateSlotButton" onclick={() => handleAddSlot()}
             >Valider</button
+          >
+        {/if}
+      </div>
+
+      {#if isAddingSlot}
+        <div id="timepicker">
+          <TimePicker
+            {selectedDate}
+            bind:selectedStartDateTime
+            bind:selectedEndDateTime
+          ></TimePicker>
+        </div>
+      {/if}
     {/if}
 
     {#if slotsForDay.length}
@@ -523,12 +561,6 @@
     }
 
     #participant-header {
-      .buttons {
-        width: 65%;
-        max-width: 300px;
-        flex-direction: column;
-      }
-
       & p {
         margin-bottom: 1rem;
       }
