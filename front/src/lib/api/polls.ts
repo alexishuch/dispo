@@ -19,6 +19,7 @@ export async function createPoll(name: string, start_date: string, end_date: str
 }
 
 export async function getPoll(id: string, fetch: Fetch): Promise<IPollEnriched> {
+    console.log(`Fetching ${API_BASE_URL}/polls/${id}/computed`)
     const res = await fetch(`${API_BASE_URL}/polls/${id}/computed`);
 
     if (!res.ok) {
