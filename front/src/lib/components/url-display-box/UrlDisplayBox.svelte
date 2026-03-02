@@ -2,7 +2,7 @@
   import { API_BASE_URL } from '$lib/api/baseUrl';
 
   let { pollId } = $props();
-  let url = $derived(API_BASE_URL + '/polls/' + pollId);
+  let url = $derived(API_BASE_URL + '/poll/' + pollId);
   let showCopied = $state(false);
 
   async function copyToClipboard() {
