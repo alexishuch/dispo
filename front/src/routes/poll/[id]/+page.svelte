@@ -3,7 +3,6 @@
     createAvailability,
     deleteAvailability,
     getCommonAvailabilities,
-    updateAvailabilities,
   } from '$lib/api/availabilities';
   import {
     createParticipant,
@@ -13,12 +12,13 @@
   import { suggestNewSlot } from '$lib/components/slider/addSlot';
   import Slider from '$lib/components/slider/Slider.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
+  import TimePicker from '$lib/components/wheeltest/TimePicker.svelte';
   import {
     convertDateToZonedYYYYMMDD,
     formatDateToLocale,
     formatSlot,
   } from '$lib/dateUtils';
-  import type { IAvailability, IParticipantEnriched } from '$lib/model';
+  import type {
   import AirDatepicker from 'air-datepicker';
   import localeFr from 'air-datepicker/locale/fr';
   import { onMount, untrack } from 'svelte';
@@ -48,6 +48,7 @@
     return new Set(dates);
   });
   let commonSlots = $derived(data.poll.commonSlots);
+  let selectedStartDateTime = $state<Date | null>(null);
 
   $effect(() => {
     const id = selectedUserId;
@@ -70,14 +71,9 @@
   });
 
   $effect(() => {
-    console.log(
-      'Yo',
-      $state.snapshot(participant?.availabilities)?.map((s) => s.slot_start),
-    );
     if (participant?.availabilities) {
       participant.availabilities.forEach((slot) => {
         if (!slot.zonedDate) {
-          // Lazy: compute only if missing
           slot.zonedDate = convertDateToZonedYYYYMMDD(slot.slot_start);
         }
       });
@@ -114,51 +110,26 @@
 
   async function handleAddSlot(dayIso: string): Promise<void> {
     if (!participant || isChangePending) return;
+    if (!selectedStartDateTime || !selectedEndDateTime || !selectedUserId)
 
     isChangePending = true;
 
     try {
-      const slotSuggestion = suggestNewSlot(slotsForDay, dayIso);
-      if (!slotSuggestion) return;
-      const createdSlot = await createAvailability(
-        participant.id,
-        slotSuggestion,
-      );
+      const newSlot: ICreateAvailability = {
+        slot_start: selectedStartDateTime.toISOString(),
+        slot_end: selectedEndDateTime.toISOString(),
+      };
+      console.log(newSlot);
+      const createdSlot = await createAvailability(participant.id, newSlot);
       participant.availabilities = [...participant.availabilities, createdSlot];
+      commonSlots = await getCommonAvailabilities(data.poll.id);
     } catch (error) {
       console.error('❌ Failed to create slot', error);
     } finally {
       isChangePending = false;
-    }
-  }
-
-  async function handleSlotUpdate(
-    slotWithUpdatedValues: IAvailability,
-  ): Promise<void> {
-    if (!participant) return;
-    isChangePending = true;
-
-    const existingSlot = participant.availabilities.find(
-      (s) => s.id === slotWithUpdatedValues.id,
-    );
-    if (!existingSlot) return;
-    const slotSnapshot = $state.snapshot(existingSlot);
-
-    try {
-      if (existingSlot) {
-        existingSlot.slot_start = slotWithUpdatedValues.slot_start;
-        existingSlot.slot_end = slotWithUpdatedValues.slot_end;
-        await updateAvailabilities(slotWithUpdatedValues);
-        commonSlots = await getCommonAvailabilities(data.poll.id);
-      }
-    } catch (error) {
-      console.log('❌ Failed to update slot', error);
-      Object.assign(existingSlot, slotSnapshot);
-    } finally {
-      setTimeout(() => {
-        isChangePending = false;
-        console.log('Done !');
-      });
+      isAddingSlot = false;
+      selectedStartDateTime = null;
+      selectedEndDateTime = null;
     }
   }
 
@@ -178,6 +149,7 @@
 
     try {
       await deleteAvailability(slotId);
+      commonSlots = await getCommonAvailabilities(data.poll.id);
     } catch (error) {
       console.error('❌ Failed to delete slot', error);
       participant.availabilities.splice(existingSlotIndex, 0, slotSnapshot);
@@ -364,17 +336,10 @@
     ></div>
 
     {#if selectedDate && participant?.availabilities}
-      <Slider
-        slots={slotsForDay}
-        date={selectedDate}
-        addSlot={() => handleAddSlot(selectedDate)}
-        onSlotUpdate={(slot: IAvailability) => handleSlotUpdate(slot)}
-        disabled={isChangePending}
-      />
+            >Valider</button
     {/if}
 
     {#if slotsForDay.length}
-      <h3>Mes dispos le {formatDateToLocale(selectedDate)}</h3>
       <ul>
         {#each slotsForDay as slot}
           <li class="slot-cell">
@@ -444,9 +409,20 @@
     }
   }
 
-  #datepicker {
+  #datepicker,
+  #timepicker {
     padding-top: 1rem;
     margin-bottom: 1rem;
+  }
+
+  #day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    & button {
+      max-width: 25%;
+    }
   }
 
   /* Participant info section */
@@ -555,6 +531,14 @@
 
       & p {
         margin-bottom: 1rem;
+      }
+
+      & .buttons {
+        width: 90%;
+      }
+
+      & button {
+        width: 100%;
       }
     }
 

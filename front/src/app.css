@@ -44,6 +44,13 @@ main {
 
 /* Typography */
 h1,
+h2,
+h3 {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+h1,
 h2 {
     margin: 0;
     letter-spacing: 3px;
