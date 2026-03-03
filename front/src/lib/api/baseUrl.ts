@@ -1,7 +1,7 @@
 import { browser, dev } from '$app/environment';
 import {
-    PUBLIC_API_BASE_URL
-} from '$env/static/public';
+    env
+} from '$env/dynamic/public';
 
 function getApiBaseUrl(): string {
     if (dev) {
@@ -12,7 +12,7 @@ function getApiBaseUrl(): string {
         return 'http://dispo_nestjs:3000';
     }
 
-    return PUBLIC_API_BASE_URL;
+    return env.PUBLIC_API_BASE_URL;
 }
 
 export const API_BASE_URL = getApiBaseUrl();
