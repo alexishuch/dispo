@@ -96,6 +96,13 @@ label:hover {
     background: #eef2ff;
 }
 
+input,
+button,
+p,
+li {
+    font-size: 1rem;
+}
+
 input[type="radio"] {
     margin-right: 12px;
     width: 18px;
@@ -115,7 +122,7 @@ form label {
     display: block;
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 6px;
+    margin-bottom: 0;
     padding: 0;
     background: none;
     border: none;
@@ -126,9 +133,7 @@ input[type="date"] {
     padding: 10px 14px;
     border: 2px solid var(--border);
     border-radius: var(--radius);
-    font-size: 14px;
     transition: border-color 0.2s;
-    width: 100%;
 }
 
 input[type="date"]:focus {
@@ -143,7 +148,6 @@ input:not([type="radio"]) {
     padding: 10px 14px;
     border: 2px solid var(--border);
     border-radius: var(--radius);
-    font-size: 14px;
     transition: border-color 0.2s;
 }
 
@@ -167,7 +171,6 @@ button {
     color: white;
     border: none;
     border-radius: var(--radius);
-    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s;
@@ -230,10 +233,6 @@ ul ul li {
 
     main {
         padding: 20px;
-    }
-
-    form {
-        flex-direction: column;
     }
 
     button {

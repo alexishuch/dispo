@@ -223,12 +223,12 @@
   <div id="poll-info">
     <h2>{data.poll.name}</h2>
     {#if data.poll.start_date}
-      <p style="display: inline;">
+      <p class="poll-date">
         Début : {formatDateToLocale(data.poll.start_date)}
       </p>
     {/if}
     {#if data.poll.end_date}
-      <p style="margin-left: 10px; display: inline;">
+      <p class="poll-date">
         Fin : {formatDateToLocale(data.poll.end_date)}
       </p>
     {/if}
@@ -278,7 +278,8 @@
   {#await participant then participant}
     <div id="participant-header">
       <p>
-        Participant sélectionné : {participant?.name}
+        Participant sélectionné :
+        <span class="wrap">{participant?.name}</span>
       </p>
       <div class="buttons">
         <button
@@ -423,7 +424,16 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 1em 0 1.5rem 0;
+    margin: 1em 0;
+  }
+
+  @media (min-width: 320px) {
+    .poll-date {
+      display: inline-block;
+      &:last-child {
+        margin-left: 10px;
+      }
+    }
   }
 
   #poll-info {
@@ -457,18 +467,22 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 
     & button {
-      max-width: 25%;
+      max-width: 30%;
     }
   }
 
   /* Participant info section */
-  p:has(+ button) {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 8px;
+  p {
+    text-align: center;
+  }
+
+  @media (max-width: 550px) {
+    .wrap {
+      display: inline-block;
+    }
   }
 
   .participants-tags {

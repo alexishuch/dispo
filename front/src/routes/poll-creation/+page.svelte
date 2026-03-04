@@ -43,13 +43,18 @@
     <p class="error-message">La date de fin est requise</p>
   {/if}
 
-  <button type="submit" style="margin-top: 20px">Créer le sondage</button>
+  <button type="submit">Créer le sondage</button>
 </form>
 
 <style>
   form {
     padding-top: 1rem;
   }
+
+  input  {
+    margin-bottom: 0.25rem;
+  }
+
   input.error {
     border: 2px solid red;
     outline-color: red;
@@ -58,5 +63,16 @@
   .error-message {
     color: red;
     font-size: 0.85rem;
+  }
+
+  button[type='submit'] {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 90%;
+    max-width: 760px;
+    margin: 1rem auto;
+    padding: 1rem 0;
   }
 </style>
