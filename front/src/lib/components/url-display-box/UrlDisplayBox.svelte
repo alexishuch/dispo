@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { API_BASE_URL } from '$lib/api/baseUrl';
+  import { env } from '$env/dynamic/public';
 
   let { pollId } = $props();
-  let url = $derived(API_BASE_URL + '/poll/' + pollId);
+  let url = $derived(env.PUBLIC_BASE_URL + '/poll/' + pollId);
   let showCopied = $state(false);
 
   async function copyToClipboard() {
