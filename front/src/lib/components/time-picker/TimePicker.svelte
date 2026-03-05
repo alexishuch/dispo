@@ -1,18 +1,6 @@
 <script lang="ts">
   import WheelColumn from './WheelColumn.svelte';
 
-  const hours: string[] = Array.from({ length: 24 }, (_, i) =>
-    String(i).padStart(2, '0'),
-  );
-
-  const minutes: string[] = [0, 15, 30, 45].map((m) =>
-    String(m).padStart(2, '0'),
-  );
-
-  const endHours = $derived(
-    hours.filter((hour) => Number(hour) >= selectedStartDateTime?.getHours()),
-  );
-
   let {
     selectedDate,
     selectedStartDateTime = $bindable<Date | null>(),
@@ -23,23 +11,46 @@
     selectedEndDateTime: Date | null;
   } = $props();
 
+  const hours: string[] = Array.from({ length: 24 }, (_, i) =>
+    String(i).padStart(2, '0'),
+  );
+
+  const minutes: string[] = [0, 15, 30, 45].map((m) =>
+    String(m).padStart(2, '0'),
+  );
+
   let startH = $state(hours[8]);
   let startM = $state(minutes[0]);
   let endH = $state(hours[9]);
   let endM = $state(minutes[0]);
 
+  const endHours = $derived.by(() => {
+    const filteredHours = hours.filter(
+      (hour) => Number(hour) >= selectedStartDateTime?.getHours(),
+    );
+    return filteredHours;
+  });
+
+  const endMinutes = $derived(
+    endH != '23'
+      ? minutes
+      : [0, 15, 30, 45, 59].map((m) => String(m).padStart(2, '0')),
+  );
+
   $effect(() => {
     selectedStartDateTime = new Date(
       new Date(selectedDate).setHours(Number(startH), Number(startM), 0, 0),
     );
-    $inspect(selectedStartDateTime?.toISOString());
   });
 
   $effect(() => {
     selectedEndDateTime = new Date(
       new Date(selectedDate).setHours(Number(endH), Number(endM), 0, 0),
     );
-    $inspect(selectedEndDateTime?.toISOString());
+  });
+
+  $effect(() => {
+    endH = endHours[1] ?? endHours[0]; // Assign an updated value after filtering of end hours
   });
 </script>
 
@@ -55,7 +66,7 @@
   <div class="time">
     <WheelColumn options={endHours} bind:selected={endH} />
     <span>:</span>
-    <WheelColumn options={minutes} bind:selected={endM} />
+    <WheelColumn options={endMinutes} bind:selected={endM} />
   </div>
 </div>
 
