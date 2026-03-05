@@ -10,8 +10,8 @@
     getParticipant,
   } from '$lib/api/participants';
   import Modal from '$lib/components/modal/Modal.svelte';
+  import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
-  import TimePicker from '$lib/components/wheeltest/TimePicker.svelte';
   import {
     convertDateToZonedYYYYMMDD,
     formatDateToLocale,
@@ -24,11 +24,13 @@
   } from '$lib/model';
   import AirDatepicker from 'air-datepicker';
   import localeFr from 'air-datepicker/locale/fr';
-  import { onMount, untrack } from 'svelte';
+  import { onMount, tick, untrack } from 'svelte';
   import type { PageProps } from './$types';
 
   let { data }: PageProps = $props();
   let datepicker: AirDatepicker<HTMLDivElement> | null;
+  let timepickerWrapper: HTMLDivElement | null;
+  let calendarWrapper: HTMLDivElement | null;
 
   let selectedUserId = $state<string | null>(null);
   let participant = $state<IParticipantEnriched | null>(null);
@@ -126,7 +128,6 @@
         slot_start: selectedStartDateTime.toISOString(),
         slot_end: selectedEndDateTime.toISOString(),
       };
-      console.log(newSlot);
       const createdSlot = await createAvailability(participant.id, newSlot);
       participant.availabilities = [...participant.availabilities, createdSlot];
       commonSlots = await getCommonAvailabilities(data.poll.id);
@@ -217,6 +218,32 @@
       isUpdatingParticipants = false;
     }
   }
+
+  async function onAddSlotClick() {
+    const bottom = timepickerWrapper?.getBoundingClientRect().bottom ?? 0;
+
+    isAddingSlot = true;
+    await tick();
+
+    if (bottom >= window.innerHeight - 200) {
+      timepickerWrapper?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    }
+  }
+
+  async function onCalendarDateClick(formattedDate: string) {
+    selectedDate = formattedDate?.toString();
+    isAddingSlot = false;
+    selectedStartDateTime = null;
+    selectedEndDateTime = null;
+    await tick();
+
+    const timePickerBottom =
+      timepickerWrapper?.getBoundingClientRect().bottom ?? 0;
+
+    if (timePickerBottom >= window.innerHeight) {
+      timepickerWrapper?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    }
+  }
 </script>
 
 <div id="poll-header">
@@ -299,84 +326,93 @@
       </div>
     </div>
 
-    <div
-      id="datepicker"
-      {@attach (div) => {
-        if (!datepicker) {
-          const poll = data.poll;
-          let minDate = new Date();
-          if (
-            poll.start_date &&
-            Date.parse(poll.start_date) > new Date().getTime()
-          ) {
-            minDate = new Date(poll.start_date);
+    <div id="calendar-wrapper" bind:this={calendarWrapper}>
+      <div
+        id="datepicker"
+        {@attach (div) => {
+          if (!datepicker) {
+            const poll = data.poll;
+            let minDate = new Date();
+            if (
+              poll.start_date &&
+              Date.parse(poll.start_date) > new Date().getTime()
+            ) {
+              minDate = new Date(poll.start_date);
+            }
+
+            datepicker = new AirDatepicker(div, {
+              inline: true,
+              locale: localeFr,
+              minDate,
+              maxDate: poll.end_date,
+              dateFormat: 'yyyy-MM-dd',
+              onSelect: ({ formattedDate }) => {
+                onCalendarDateClick(formattedDate);
+              },
+              onRenderCell({ date, cellType }) {
+                const dateStr = date.toDateString();
+                const hasDot = untrack(() => daysWithSlots.has(dateStr));
+
+                if (cellType === 'day' && hasDot) {
+                  return {
+                    html:
+                      date.getDate() + `<span class="slot-indicator"></span>`,
+                    classes: 'has-slot',
+                  };
+                }
+              },
+            });
+            console.log('Datepicker created:', datepicker);
           }
 
-          datepicker = new AirDatepicker(div, {
-            inline: true,
-            locale: localeFr,
-            minDate,
-            maxDate: poll.end_date,
-            dateFormat: 'yyyy-MM-dd',
-            onSelect: ({ formattedDate }) => {
-              selectedDate = formattedDate?.toString();
+          return () => {
+            datepicker?.destroy();
+            datepicker = null;
+          };
+        }}
+      ></div>
 
-              if (window.innerWidth < 768) {
-                setTimeout(() => {
-                  const top = div.getBoundingClientRect().top + window.scrollY;
-                  window.scrollTo({ top, behavior: 'smooth' });
-                }, 200); // browser focus-scroll typically finishes within 100–300ms
-              }
-            },
-            onRenderCell({ date, cellType }) {
-              const dateStr = date.toDateString();
-              const hasDot = untrack(() => daysWithSlots.has(dateStr));
-
-              if (cellType === 'day' && hasDot) {
-                return {
-                  html: date.getDate() + `<span class="slot-indicator"></span>`,
-                  classes: 'has-slot',
-                };
-              }
-            },
-          });
-          console.log('Datepicker created:', datepicker);
-        }
-
-        return () => {
-          datepicker?.destroy();
-          datepicker = null;
-        };
-      }}
-    ></div>
-
-    {#if selectedDate && participant?.availabilities}
-      <div id="day-header">
-        <h3>Mes dispos le {formatDateToLocale(selectedDate)}</h3>
-        {#if !isAddingSlot}
-          <button
-            id="addSlotButton"
-            onclick={() => {
-              isAddingSlot = true;
-            }}>+ Ajouter</button
-          >
-        {:else}
-          <button id="validateSlotButton" onclick={() => handleAddSlot()}
-            >Valider</button
-          >
-        {/if}
-      </div>
-
-      {#if isAddingSlot}
-        <div id="timepicker">
-          <TimePicker
-            {selectedDate}
-            bind:selectedStartDateTime
-            bind:selectedEndDateTime
-          ></TimePicker>
-        </div>
+      {#if !selectedDate}
+        <p>Sélectionnez une date sur le calendrier</p>
       {/if}
-    {/if}
+    </div>
+
+    <div id="timepicker-wrapper" bind:this={timepickerWrapper}>
+      {#if selectedDate && participant?.availabilities}
+        <div id="day-header">
+          <h3>Mes dispos le {formatDateToLocale(selectedDate)}</h3>
+          {#if !isAddingSlot}
+            <button id="addSlotButton" onclick={onAddSlotClick}
+              >+ Ajouter</button
+            >
+          {:else}
+            <div class="buttons">
+              <button
+                id=""
+                onclick={() => {
+                  isAddingSlot = false;
+                  selectedStartDateTime = null;
+                  selectedEndDateTime = null;
+                }}>X</button
+              >
+              <button id="validateSlotButton" onclick={() => handleAddSlot()}
+                >✓</button
+              >
+            </div>
+          {/if}
+        </div>
+
+        {#if isAddingSlot}
+          <div id="timepicker">
+            <TimePicker
+              {selectedDate}
+              bind:selectedStartDateTime
+              bind:selectedEndDateTime
+            ></TimePicker>
+          </div>
+        {/if}
+      {/if}
+    </div>
 
     {#if slotsForDay.length}
       <ul>
@@ -393,10 +429,6 @@
           </li>
         {/each}
       </ul>
-    {/if}
-
-    {#if !selectedDate}
-      <p>Sélectionnez une date sur le calendrier</p>
     {/if}
 
     {#if commonSlots.length > 0}
@@ -427,15 +459,6 @@
     margin: 1em 0;
   }
 
-  @media (min-width: 320px) {
-    .poll-date {
-      display: inline-block;
-      &:last-child {
-        margin-left: 10px;
-      }
-    }
-  }
-
   #poll-info {
     text-align: left;
   }
@@ -457,10 +480,18 @@
     }
   }
 
-  #datepicker,
-  #timepicker {
+  #calendar-wrapper,
+  #timepicker-wrapper {
+    scroll-margin-bottom: 20px;
+  }
+
+  #datepicker {
     padding-top: 1rem;
     margin-bottom: 1rem;
+  }
+
+  #timepicker {
+    margin-bottom: 1.5rem;
   }
 
   #day-header {
@@ -471,6 +502,16 @@
 
     & button {
       max-width: 30%;
+    }
+
+    & .buttons {
+      display: flex;
+      max-width: 40%;
+      gap: 0.5rem;
+
+      & button {
+        min-width: 3rem;
+      }
     }
   }
 
@@ -559,6 +600,15 @@
       height: 4px;
       border-radius: 50%;
       background-color: #cccccc;
+    }
+  }
+
+  @media (min-width: 320px) {
+    .poll-date {
+      display: inline-block;
+      &:last-child {
+        margin-left: 10px;
+      }
     }
   }
 

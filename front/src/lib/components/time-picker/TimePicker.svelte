@@ -64,14 +64,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.8rem;
   }
 
   .time {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 0 8px;
     border-radius: 12px;
     background: #f5f5f5;
     position: relative;
@@ -88,5 +86,12 @@
     border-top: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
     pointer-events: none;
+  }
+
+  @media (min-width: 340px) {
+    .time {
+      gap: 4px;
+      padding: 0 8px;
+    }
   }
 </style>

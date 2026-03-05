@@ -118,7 +118,8 @@
 <style>
   .wheel {
     height: 200px;
-    width: 64px;
+    width: 16vw;
+    max-width: 100px;
     overflow-y: auto;
     scroll-snap-type: y mandatory;
     -webkit-overflow-scrolling: touch;
@@ -144,5 +145,10 @@
     pointer-events: none;
     -webkit-user-select: none;
     user-select: none;
+  }
+
+  @media (min-width: 400px) {
+    .wheel {
+    }
   }
 </style>
