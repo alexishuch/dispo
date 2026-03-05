@@ -33,6 +33,7 @@
   let timepickerWrapper: HTMLDivElement | null;
 
   let selectedUserId = $state<string | null>(null);
+  let participantPromise: Promise<IParticipantEnriched> | null = $state(null);
   let participant = $state<IParticipantEnriched | null>(null);
   let newParticipantName = $state<string>('');
 
@@ -61,21 +62,23 @@
   $effect(() => {
     const id = selectedUserId;
     if (!id) {
-      participant = null;
+      participantPromise = null;
       return;
     }
 
     let cancelled = false;
 
-    getParticipant(id)
+    participantPromise = getParticipant(id)
       .then((p) => {
         if (!cancelled) {
           participant = p;
         }
+        return p;
       })
       .catch((error: Error) => {
         selectedUserId = null;
         setErrorToastMessage(error.message);
+        return Promise.reject(error);
       });
 
     return () => {
@@ -277,38 +280,8 @@
   >Souhaitez-vous vraiment supprimer le participant et ses disponibilités ?</Modal
 >
 
-{#if !selectedUserId}
-  <div>
-    {#if !data.poll.participants.length}
-      <p>Saisissez votre nom :</p>
-    {:else}
-      <p>Sélectionnez votre nom :</p>
-    {/if}
-
-    {#each data.poll.participants as participant}
-      <label>
-        <input
-          type="radio"
-          bind:group={selectedUserId}
-          value={participant.id}
-        />
-        {participant.name}
-      </label>
-    {/each}
-
-    <form onsubmit={handleCreateParticipant}>
-      <input
-        bind:value={newParticipantName}
-        disabled={isUpdatingParticipants}
-        required
-      />
-      <button type="submit" disabled={isUpdatingParticipants}>
-        {isUpdatingParticipants ? 'Création...' : 'Créer'}
-      </button>
-    </form>
-  </div>
-{:else}
-  {#await participant then participant}
+{#if selectedUserId}
+  {#await participantPromise then participant}
     <div id="participant-header">
       <p>
         Participant sélectionné :
@@ -454,6 +427,36 @@
       </ul>
     {/if}
   {/await}
+{:else}
+  <div>
+    {#if !data.poll.participants.length}
+      <p>Saisissez votre nom :</p>
+    {:else}
+      <p>Sélectionnez votre nom :</p>
+    {/if}
+
+    {#each data.poll.participants as participant}
+      <label>
+        <input
+          type="radio"
+          bind:group={selectedUserId}
+          value={participant.id}
+        />
+        {participant.name}
+      </label>
+    {/each}
+
+    <form onsubmit={handleCreateParticipant}>
+      <input
+        bind:value={newParticipantName}
+        disabled={isUpdatingParticipants}
+        required
+      />
+      <button type="submit" disabled={isUpdatingParticipants}>
+        {isUpdatingParticipants ? 'Création...' : 'Créer'}
+      </button>
+    </form>
+  </div>
 {/if}
 
 <style>
