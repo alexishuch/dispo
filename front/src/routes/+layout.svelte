@@ -1,5 +1,6 @@
 <script lang="ts">
   import favicon from '$lib/assets/favicon.svg';
+  import ErrorNotification from '$lib/components/error-notification/ErrorNotification.svelte';
   import { onMount } from 'svelte';
   import '../app.css';
 
@@ -31,3 +32,5 @@
 </header>
 
 {@render children()}
+
+<ErrorNotification />

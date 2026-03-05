@@ -9,6 +9,7 @@
     deleteParticipant,
     getParticipant,
   } from '$lib/api/participants';
+  import { setErrorToastMessage } from '$lib/components/error-notification/errorToast.svelte';
   import Modal from '$lib/components/modal/Modal.svelte';
   import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
@@ -30,7 +31,6 @@
   let { data }: PageProps = $props();
   let datepicker: AirDatepicker<HTMLDivElement> | null;
   let timepickerWrapper: HTMLDivElement | null;
-  let calendarWrapper: HTMLDivElement | null;
 
   let selectedUserId = $state<string | null>(null);
   let participant = $state<IParticipantEnriched | null>(null);
@@ -67,11 +67,16 @@
 
     let cancelled = false;
 
-    getParticipant(id).then((p) => {
-      if (!cancelled) {
-        participant = p;
-      }
-    });
+    getParticipant(id)
+      .then((p) => {
+        if (!cancelled) {
+          participant = p;
+        }
+      })
+      .catch((error: Error) => {
+        selectedUserId = null;
+        setErrorToastMessage(error.message);
+      });
 
     return () => {
       cancelled = true;
@@ -181,6 +186,7 @@
         selectedUserId = newParticipant.id;
         newParticipantName = '';
       } catch (error) {
+        setErrorToastMessage(error.message);
         console.error('❌ Failed to create participant:', error);
       } finally {
         isUpdatingParticipants = false;
@@ -326,7 +332,7 @@
       </div>
     </div>
 
-    <div id="calendar-wrapper" bind:this={calendarWrapper}>
+    <div id="calendar-wrapper">
       <div
         id="datepicker"
         {@attach (div) => {
@@ -362,7 +368,6 @@
                 }
               },
             });
-            console.log('Datepicker created:', datepicker);
           }
 
           return () => {
@@ -452,6 +457,19 @@
 {/if}
 
 <style>
+  #error-notification-wrapper {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 90%;
+    margin: 1rem auto 0 auto;
+    /*  max-width: 760px;
+    padding: 1rem;
+    border-radius: 10px 10px 0 0;
+    background: rgba(255, 0, 0, 0.75); */
+  }
+
   #poll-header {
     display: flex;
     justify-content: space-between;

@@ -73,6 +73,6 @@
     width: 90%;
     max-width: 760px;
     margin: 1rem auto;
-    padding: 1rem 0;
+    padding: 1rem;
   }
 </style>

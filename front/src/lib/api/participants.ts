@@ -1,5 +1,16 @@
-import type { IParticipant, IParticipantEnriched } from "$lib/model";
+import type { IParticipant } from "$lib/model";
 import { API_BASE_URL } from "./baseUrl";
+
+async function handleError(res: Response) {
+    let payload: any = null;
+    let errorMessage = `Request failed - (${res.status})`;
+    try { payload = await res.json(); } catch { }
+    if (payload.statusCode) {
+        errorMessage = payload.statusCode + ' - ' + payload.message
+    }
+
+    throw new Error(errorMessage);
+}
 
 export async function createParticipant(pollId: string, name: string): Promise<IParticipant> {
     const res = await fetch(`${API_BASE_URL}/participants`, {
@@ -9,22 +20,20 @@ export async function createParticipant(pollId: string, name: string): Promise<I
     });
 
     if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
+        await handleError(res)
     }
 
     return await res.json();
 }
 
-export async function getParticipant(participantId: string): Promise<IParticipantEnriched> {
+export async function getParticipant(participantId: string) {
     const res = await fetch(`${API_BASE_URL}/participants/${participantId}`);
 
     if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
+        await handleError(res)
     }
 
-    return await res.json();
+    return res.json();
 }
 
 export async function deleteParticipant(participantId: string): Promise<void> {
@@ -33,7 +42,8 @@ export async function deleteParticipant(participantId: string): Promise<void> {
     });
 
     if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
+        await handleError(res)
     }
+
+    return res.json();
 }
