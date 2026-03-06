@@ -27,5 +27,5 @@ export async function deleteParticipant(participantId: string): Promise<void> {
   const options = {
     method: 'DELETE',
   };
-  return handleApiRequest(path, options);
+  return handleApiRequest(path, options, false);
 }

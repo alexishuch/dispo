@@ -187,6 +187,22 @@ button[type='button']:hover:not(:disabled) {
   background: var(--border);
 }
 
+button.danger-btn {
+  background: lightcoral;
+
+  &:hover {
+    background: red;
+  }
+}
+
+button.validate-btn {
+  background: lightgreen;
+
+  &:hover {
+    background: green;
+  }
+}
+
 /* Lists */
 ul {
   list-style: none;

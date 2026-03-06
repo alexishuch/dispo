@@ -9,8 +9,11 @@
     deleteParticipant,
     getParticipant,
   } from '$lib/api/participants';
-  import { getErrorMessage } from '$lib/api/tools';
-  import { setErrorToastMessage } from '$lib/components/error-notification/errorToast.svelte';
+  import { getErrorMessage, HttpError } from '$lib/api/tools';
+  import {
+    setCustomErrorToastMessage,
+    setGenericErrorToastMessage,
+  } from '$lib/components/error-notification/errorToast.svelte';
   import Modal from '$lib/components/modal/Modal.svelte';
   import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
@@ -31,7 +34,7 @@
 
   let { data }: PageProps = $props();
   let datepicker: AirDatepicker<HTMLDivElement> | null;
-  let timepickerWrapper: HTMLDivElement | null;
+  let timepickerWrapper: HTMLDivElement | null = $state(null);
 
   let selectedUserId = $state<string | null>(null);
   let participantPromise: Promise<IParticipantEnriched> | null = $state(null);
@@ -77,7 +80,7 @@
       })
       .catch((error) => {
         selectedUserId = null;
-        setErrorToastMessage(error);
+        setGenericErrorToastMessage(error);
         return Promise.reject(error);
       });
 
@@ -141,7 +144,11 @@
       selectedStartDateTime = null;
       selectedEndDateTime = null;
     } catch (error) {
-      setErrorToastMessage(getErrorMessage(error));
+      if (error instanceof HttpError && error.status === 409) {
+        setCustomErrorToastMessage('Un créneau existe déjà sur cet horaire.');
+      } else {
+        setGenericErrorToastMessage(getErrorMessage(error));
+      }
       console.error('❌ Failed to create slot', error);
     }
   }
@@ -164,7 +171,7 @@
       commonSlots = await getCommonAvailabilities(data.poll.id);
     } catch (error) {
       participant.availabilities.splice(existingSlotIndex, 0, slotSnapshot);
-      setErrorToastMessage(getErrorMessage(error));
+      setGenericErrorToastMessage(getErrorMessage(error));
       console.error('❌ Failed to delete slot', error);
     } finally {
     }
@@ -182,7 +189,7 @@
         selectedUserId = newParticipant.id;
         newParticipantName = '';
       } catch (error) {
-        setErrorToastMessage(getErrorMessage(error));
+        setGenericErrorToastMessage(getErrorMessage(error));
         console.error('❌ Failed to create participant:', error);
       } finally {
         isUpdatingParticipants = false;
@@ -290,10 +297,10 @@
           Changer
         </button>
         <button
+          class="danger-btn"
           onclick={() => (isDeletingParticipant = true)}
-          disabled={isUpdatingParticipants}
         >
-          {isUpdatingParticipants ? 'Suppression...' : 'Supprimer'}
+          Supprimer
         </button>
       </div>
     </div>
@@ -360,14 +367,17 @@
             <div class="buttons">
               <button
                 id=""
+                class="danger-btn"
                 onclick={() => {
                   isAddingSlot = false;
                   selectedStartDateTime = null;
                   selectedEndDateTime = null;
-                }}>X</button
+                }}>✗</button
               >
-              <button id="validateSlotButton" onclick={() => handleAddSlot()}
-                >✓</button
+              <button
+                id="validateSlotButton"
+                class="validate-btn"
+                onclick={() => handleAddSlot()}>✓</button
               >
             </div>
           {/if}
@@ -453,19 +463,6 @@
 {/if}
 
 <style>
-  #error-notification-wrapper {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 90%;
-    margin: 1rem auto 0 auto;
-    /*  max-width: 760px;
-    padding: 1rem;
-    border-radius: 10px 10px 0 0;
-    background: rgba(255, 0, 0, 0.75); */
-  }
-
   #poll-header {
     display: flex;
     justify-content: space-between;

@@ -1,4 +1,4 @@
-import { getErrorMessage } from '$lib/api/tools';
+import { getErrorMessage } from "$lib/api/tools";
 
 let message = $state('');
 
@@ -6,8 +6,14 @@ export function getErrorToastMessage() {
   return message;
 }
 
-export function setErrorToastMessage(error: unknown) {
-  message = getErrorMessage(error);
+export function setGenericErrorToastMessage(error: unknown) {
+  const genericMessage = "Une erreur est survenue. Merci de réessayer.<br />";
+  const errorMessage = `<code>` + getErrorMessage(error) + `</code>`;
+  message = genericMessage + errorMessage;
+}
+
+export function setCustomErrorToastMessage(errorMessage: string) {
+  message = errorMessage;
 }
 
 export function clearErrorToast() {

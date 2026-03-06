@@ -3,6 +3,7 @@
     clearErrorToast,
     getErrorToastMessage,
   } from '$lib/components/error-notification/errorToast.svelte';
+  import { fly } from 'svelte/transition';
 
   $effect(() => {
     const msg = getErrorToastMessage();
@@ -14,11 +15,8 @@
 </script>
 
 {#if getErrorToastMessage()}
-  <section>
-    Une erreur est survenue. Merci de réessayer.<br />
-    <code>
-      {getErrorToastMessage()}
-    </code>
+  <section transition:fly={{ y: 200, duration: 500 }}>
+    {@html getErrorToastMessage()}
   </section>
 {/if}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { page } from '$app/state';
-  import { setErrorToastMessage } from '$lib/components/error-notification/errorToast.svelte';
+  import { setGenericErrorToastMessage } from '$lib/components/error-notification/errorToast.svelte';
 
   let form = page.form;
   let today = new Date().toLocaleDateString('en-CA');
@@ -16,7 +16,7 @@
 
     return async ({ result, update }) => {
       if (result.type === 'failure') {
-        setErrorToastMessage(
+        setGenericErrorToastMessage(
           result.data?.error ?? 'Impossible de créer le sondage.',
         );
       }

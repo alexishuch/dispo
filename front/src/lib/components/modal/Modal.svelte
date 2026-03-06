@@ -55,8 +55,9 @@
     </p>
   {/if}
   <div class="buttons">
-    <button onclick={() => dialog?.close()}>Annuler</button>
+    <button class="danger-btn" onclick={() => dialog?.close()}>Annuler</button>
     <button
+      class="validate-btn"
       onclick={() => {
         handleConfirm();
       }}>Valider</button
