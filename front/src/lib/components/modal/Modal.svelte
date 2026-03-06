@@ -4,22 +4,17 @@
   let {
     showModal = $bindable(),
     emoji,
-    pollId,
     callback,
     children,
   }: {
     showModal: boolean;
     emoji: string;
-    pollId: string;
     callback: () => Promise<void>;
     children: Snippet;
   } = $props();
 
   let dialog = $state() as HTMLDialogElement | undefined;
   let displayErrorMessage = $state(false);
-  let errorMailLink = $derived(
-    `mailto:alexishuch@ikmail.com?subject=Erreur sur sondage ${pollId}`,
-  );
 
   $effect(() => {
     if (showModal) {
@@ -48,11 +43,7 @@
   <hr />
   {@render children()}
   {#if displayErrorMessage}
-    <p class="error-message">
-      Impossible de supprimer le participant.<br />Merci de réessayer plus tard
-      ou d'envoyer un
-      <a href={errorMailLink}>mail</a>.
-    </p>
+    <p class="error-message">Impossible de supprimer le participant.</p>
   {/if}
   <div class="buttons">
     <button class="danger-btn" onclick={() => dialog?.close()}>Annuler</button>

@@ -275,7 +275,6 @@
 <Modal
   bind:showModal={isDeletingParticipant}
   emoji={'⚠️'}
-  pollId={data.poll.id}
   callback={handleParticipantDeletion}
   >Souhaitez-vous vraiment supprimer le participant et ses disponibilités ?</Modal
 >

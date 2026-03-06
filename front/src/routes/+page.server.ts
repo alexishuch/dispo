@@ -11,12 +11,11 @@ export const actions = {
     const end_date = String(formData.get('end_date'));
     let newPoll: IPoll;
 
-    if (!name || !start_date || !end_date) {
+    if (!name || !start_date) {
       return fail(400, {
         missing: {
           name: !name,
           start_date: !start_date,
-          end_date: !end_date,
         },
       });
     }

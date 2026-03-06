@@ -7,7 +7,7 @@ export function getErrorToastMessage() {
 }
 
 export function setGenericErrorToastMessage(error: unknown) {
-  const genericMessage = "Une erreur est survenue. Merci de réessayer.<br />";
+  const genericMessage = "Une erreur est survenue.<br />";
   const errorMessage = `<code>` + getErrorMessage(error) + `</code>`;
   message = genericMessage + errorMessage;
 }
