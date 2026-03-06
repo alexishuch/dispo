@@ -1,5 +1,5 @@
 services:
-  dispo_postgres:
+  postgres:
     image: postgres:18.3-alpine
     platform: linux/arm64/v8
     ports:
@@ -16,9 +16,11 @@ services:
         source: ./back/init.sql
         target: /docker-entrypoint-initdb.d/init.sql
         read_only: true
+    networks:
+      - dispo
     restart: unless-stopped
 
-  dispo_nestjs:
+  nestjs:
     platform: linux/arm64/v8
     build:
       context: ./back
@@ -29,20 +31,26 @@ services:
     env_file:
       - .env
     depends_on:
-      - dispo_postgres
+      - postgres
+    networks:
+      - dispo
+      - caddy
     restart: unless-stopped
 
-  dispo_svelte:
+  svelte:
     platform: linux/arm64/v8
     build:
       context: ./front
     environment:
-      ORIGIN: "${PUBLIC_BASE_URL}:3001"
+      ORIGIN: ${PUBLIC_BASE_URL}
       PORT: 3001
     ports:
       - "3001:3001"
     env_file:
       - .env
+    networks:
+      - dispo
+      - caddy
     restart: unless-stopped
 
 volumes:
@@ -51,3 +59,5 @@ volumes:
 
 networks:
   dispo:
+  caddy:
+    external: true
