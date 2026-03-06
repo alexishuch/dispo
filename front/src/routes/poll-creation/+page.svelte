@@ -1,11 +1,30 @@
 <script lang="ts">
+  import { enhance } from '$app/forms';
   import { page } from '$app/state';
+  import { setErrorToastMessage } from '$lib/components/error-notification/errorToast.svelte';
 
   let form = page.form;
   let today = new Date().toLocaleDateString('en-CA');
+  let submitting = $state(false);
 </script>
 
-<form method="post" action="/poll-creation?/create">
+<form
+  method="post"
+  action="/poll-creation?/create"
+  use:enhance={() => {
+    submitting = true;
+
+    return async ({ result, update }) => {
+      if (result.type === 'failure') {
+        setErrorToastMessage(
+          result.data?.error ?? 'Impossible de créer le sondage.',
+        );
+      }
+      await update();
+      submitting = false;
+    };
+  }}
+>
   <label for="name">Nom du sondage :</label>
   <input
     id="name"
@@ -36,14 +55,15 @@
     id="end_date"
     name="end_date"
     type="date"
-    required
     class:error={form?.missing?.end_date}
   />
   {#if form?.missing?.end_date}
     <p class="error-message">La date de fin est requise</p>
   {/if}
 
-  <button type="submit">Créer le sondage</button>
+  <button type="submit" disabled={submitting}>
+    {submitting ? 'Création...' : 'Créer le sondage'}
+  </button>
 </form>
 
 <style>

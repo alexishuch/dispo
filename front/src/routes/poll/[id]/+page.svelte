@@ -9,6 +9,7 @@
     deleteParticipant,
     getParticipant,
   } from '$lib/api/participants';
+  import { getErrorMessage } from '$lib/api/tools';
   import { setErrorToastMessage } from '$lib/components/error-notification/errorToast.svelte';
   import Modal from '$lib/components/modal/Modal.svelte';
   import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
@@ -38,7 +39,6 @@
   let newParticipantName = $state<string>('');
 
   let isUpdatingParticipants = $state(false);
-  let isChangePending = $state(false);
   let isAddingSlot = $state(false);
   let isDeletingParticipant = $state(false);
 
@@ -75,9 +75,9 @@
         }
         return p;
       })
-      .catch((error: Error) => {
+      .catch((error) => {
         selectedUserId = null;
-        setErrorToastMessage(error.message);
+        setErrorToastMessage(error);
         return Promise.reject(error);
       });
 
@@ -100,7 +100,7 @@
     daysWithSlots;
 
     if (datepicker?.viewDate) {
-      // Force re-render
+      // Force re-rendering of calendar
       datepicker.next();
       datepicker.prev();
     }
@@ -125,11 +125,9 @@
   }
 
   async function handleAddSlot(): Promise<void> {
-    if (!participant || isChangePending) return;
+    if (!participant) return;
     if (!selectedStartDateTime || !selectedEndDateTime || !selectedUserId)
       return;
-
-    isChangePending = true;
 
     try {
       const newSlot: ICreateAvailability = {
@@ -140,9 +138,9 @@
       participant.availabilities = [...participant.availabilities, createdSlot];
       commonSlots = await getCommonAvailabilities(data.poll.id);
     } catch (error) {
+      setErrorToastMessage(getErrorMessage(error));
       console.error('❌ Failed to create slot', error);
     } finally {
-      isChangePending = false;
       isAddingSlot = false;
       selectedStartDateTime = null;
       selectedEndDateTime = null;
@@ -151,7 +149,6 @@
 
   async function deleteSlot(slotId: string): Promise<void> {
     if (!participant) return;
-    isChangePending = true;
 
     const existingSlotIndex = participant.availabilities.findIndex(
       (s) => s.id === slotId,
@@ -167,13 +164,10 @@
       await deleteAvailability(slotId);
       commonSlots = await getCommonAvailabilities(data.poll.id);
     } catch (error) {
-      console.error('❌ Failed to delete slot', error);
       participant.availabilities.splice(existingSlotIndex, 0, slotSnapshot);
+      setErrorToastMessage(getErrorMessage(error));
+      console.error('❌ Failed to delete slot', error);
     } finally {
-      setTimeout(() => {
-        isChangePending = false;
-        console.log('Done !');
-      }, 1000);
     }
   }
 
@@ -189,7 +183,7 @@
         selectedUserId = newParticipant.id;
         newParticipantName = '';
       } catch (error) {
-        setErrorToastMessage(error.message);
+        setErrorToastMessage(getErrorMessage(error));
         console.error('❌ Failed to create participant:', error);
       } finally {
         isUpdatingParticipants = false;
