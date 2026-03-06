@@ -137,13 +137,12 @@
       const createdSlot = await createAvailability(participant.id, newSlot);
       participant.availabilities = [...participant.availabilities, createdSlot];
       commonSlots = await getCommonAvailabilities(data.poll.id);
-    } catch (error) {
-      setErrorToastMessage(getErrorMessage(error));
-      console.error('❌ Failed to create slot', error);
-    } finally {
       isAddingSlot = false;
       selectedStartDateTime = null;
       selectedEndDateTime = null;
+    } catch (error) {
+      setErrorToastMessage(getErrorMessage(error));
+      console.error('❌ Failed to create slot', error);
     }
   }
 
@@ -224,12 +223,12 @@
 
   async function onAddSlotClick() {
     const bottom = timepickerWrapper?.getBoundingClientRect().bottom ?? 0;
-
+    const timepickerMargin = 200;
     isAddingSlot = true;
     await tick();
 
-    if (bottom >= window.innerHeight - 200) {
-      timepickerWrapper?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    if (bottom >= window.innerHeight - timepickerMargin) {
+      timepickerWrapper?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }
   }
 
@@ -244,7 +243,7 @@
       timepickerWrapper?.getBoundingClientRect().bottom ?? 0;
 
     if (timePickerBottom >= window.innerHeight) {
-      timepickerWrapper?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      timepickerWrapper?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }
   }
 </script>
@@ -384,24 +383,24 @@
           </div>
         {/if}
       {/if}
-    </div>
 
-    {#if slotsForDay.length}
-      <ul>
-        {#each slotsForDay as slot}
-          <li class="slot-cell">
-            {formatSlot(slot.slot_start, slot.slot_end, false)}
-            <button
-              onclick={() => deleteSlot(slot.id)}
-              class="slot-delete-button"
-              title="Supprimer ce créneau"
-            >
-              🗑️
-            </button>
-          </li>
-        {/each}
-      </ul>
-    {/if}
+      {#if slotsForDay.length}
+        <ul>
+          {#each slotsForDay as slot}
+            <li class="slot-cell">
+              {formatSlot(slot.slot_start, slot.slot_end, false)}
+              <button
+                onclick={() => deleteSlot(slot.id)}
+                class="slot-delete-button"
+                title="Supprimer ce créneau"
+              >
+                🗑️
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
 
     {#if commonSlots.length > 0}
       <h3>Créneaux communs</h3>
@@ -495,7 +494,6 @@
     }
   }
 
-  #calendar-wrapper,
   #timepicker-wrapper {
     scroll-margin-bottom: 20px;
   }

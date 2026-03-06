@@ -7,10 +7,7 @@
   --border: #e5e7eb;
   --text-primary: #111827;
   --text-secondary: #6b7280;
-  --success: #10b981;
   --radius: 8px;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -33,15 +30,6 @@ body {
 
 header {
   margin-bottom: 0.8rem;
-}
-
-/* Main container */
-main {
-  margin: 0 auto;
-  background: var(--background);
-  padding: 32px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
 }
 
 /* Typography */
@@ -75,7 +63,7 @@ a {
 }
 
 /* Participant selection */
-div > p:first-child {
+div>p:first-child {
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 16px;
@@ -231,13 +219,5 @@ ul ul li {
 @media (max-width: 500px) {
   body {
     padding: 12px;
-  }
-
-  main {
-    padding: 20px;
-  }
-
-  button {
-    width: 100%;
   }
 }
