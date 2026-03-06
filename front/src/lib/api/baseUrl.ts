@@ -10,7 +10,7 @@ function getApiBaseUrl(): string {
   if (dev) {
     return 'http://localhost:3000';
   }
-  return 'http://dispo_nestjs:3000';
+  return 'http://nestjs:3000';
 }
 
 export const API_BASE_URL = getApiBaseUrl();
