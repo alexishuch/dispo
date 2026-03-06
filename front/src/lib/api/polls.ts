@@ -4,7 +4,7 @@ import { handleApiRequest } from './tools';
 export async function createPoll(
   name: string,
   start_date: string,
-  end_date: string,
+  end_date?: string,
 ): Promise<IPoll> {
   const path = '/polls';
   const options = {

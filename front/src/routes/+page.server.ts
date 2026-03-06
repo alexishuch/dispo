@@ -8,7 +8,7 @@ export const actions = {
     const formData = await request.formData();
     const name = String(formData.get('name'));
     const start_date = String(formData.get('start_date'));
-    const end_date = String(formData.get('end_date'));
+    const end_date = String(formData.get('end_date')) || undefined;
     let newPoll: IPoll;
 
     if (!name || !start_date) {
