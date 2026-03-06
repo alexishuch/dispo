@@ -322,7 +322,7 @@
               inline: true,
               locale: localeFr,
               minDate,
-              maxDate: poll.end_date,
+              maxDate: poll.end_date || undefined,
               dateFormat: 'yyyy-MM-dd',
               onSelect: ({ formattedDate }) => {
                 onCalendarDateClick(formattedDate);
