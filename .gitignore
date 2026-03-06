@@ -1,7 +1,16 @@
 # compiled output
 */dist
 */node_modules
-/build
+*/build
+*/.output
+*/.vercel
+*/.netlify
+*/.wrangler
+*/.svelte-kit
+
+# Vite
+*/vite.config.js.timestamp-*
+*/vite.config.ts.timestamp-*
 
 # Logs
 logs
