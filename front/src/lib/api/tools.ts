@@ -40,7 +40,7 @@ export async function handleError(res: Response): Promise<never> {
     payload = await res.json();
   } catch { }
 
-  const message = payload.message ?? 'Request failed';
+  const message = payload?.statusText ?? 'Request failed';
 
   throw new HttpError(message, res.status);
 }
