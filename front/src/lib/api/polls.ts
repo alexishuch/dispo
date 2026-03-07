@@ -6,7 +6,7 @@ export async function createPoll(
   start_date: string,
   end_date?: string,
 ): Promise<IPoll> {
-  const path = '/polls';
+  const path = 'polls';
   const options = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -16,6 +16,6 @@ export async function createPoll(
 }
 
 export async function getPoll(id: string): Promise<IPollEnriched> {
-  const path = `/polls/${id}/computed`;
+  const path = `polls/${id}/computed`;
   return await handleApiRequest(path);
 }

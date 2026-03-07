@@ -8,7 +8,7 @@ import { handleApiRequest } from './tools';
 export async function getCommonAvailabilities(
   participantId: string,
 ): Promise<ICommonSlot[]> {
-  const path = `/availabilities/${participantId}/common`;
+  const path = `availabilities/${participantId}/common`;
   return handleApiRequest(path);
 }
 
@@ -17,7 +17,7 @@ export async function createAvailability(
   slot: ICreateAvailability,
 ): Promise<IAvailability> {
   const { slot_start, slot_end } = slot;
-  const path = `/availabilities`;
+  const path = `availabilities`;
   const options = {
     method: 'POST',
     headers: {
@@ -33,7 +33,7 @@ export async function createAvailability(
 }
 
 export async function deleteAvailability(slotId: string): Promise<void> {
-  const path = `/availabilities/${slotId}`;
+  const path = `availabilities/${slotId}`;
   return handleApiRequest(path, {
     method: 'DELETE',
   });
