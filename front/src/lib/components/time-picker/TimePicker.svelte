@@ -11,62 +11,116 @@
     selectedEndDateTime: Date | null;
   } = $props();
 
-  const hours: string[] = Array.from({ length: 24 }, (_, i) =>
-    String(i).padStart(2, '0'),
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const isToday = $derived(selectedDate === todayStr);
+
+  const hours: number[] = Array.from({ length: 24 }, (_, i) => i);
+  const endableHours: number[] = [...hours, 24];
+  const minutes: number[] = [0, 15, 30, 45];
+
+  let startH = $state(8);
+  let startM = $state(0);
+
+  // Check if current hour is still selectable
+  const startHours = $derived(
+    isToday
+      ? hours.filter(
+          (h) => h >= now.getHours() + (now.getMinutes() > 45 ? 1 : 0),
+        )
+      : hours,
   );
 
-  const minutes: string[] = [0, 15, 30, 45].map((m) =>
-    String(m).padStart(2, '0'),
-  );
-
-  let startH = $state(hours[8]);
-  let startM = $state(minutes[0]);
-  let endH = $state(hours[9]);
-  let endM = $state(minutes[0]);
-
-  const endHours = $derived.by(() => {
-    const filteredHours = hours.filter(
-      (hour) => Number(hour) >= selectedStartDateTime?.getHours(),
-    );
-    return filteredHours;
+  const startMinutes = $derived.by(() => {
+    if (!isToday || startH > now.getHours()) return minutes;
+    return minutes.filter((m) => m >= now.getMinutes());
   });
 
-  const endMinutes = $derived(
-    endH != '23'
-      ? minutes
-      : [0, 15, 30, 45, 59].map((m) => String(m).padStart(2, '0')),
-  );
+  $effect(() => {
+    if (!startHours.includes(startH)) startH = startHours[0];
+    console.log(startH);
+    console.log(startMinutes);
+  });
+  $effect(() => {
+    if (!startMinutes.includes(startM)) startM = startMinutes[0];
+  });
+
+  let endH = $state(9);
+  let endM = $state(0);
+
+  const endHours = $derived(endableHours.filter((h) => h > startH || h === 24));
+  const endMinutes = $derived(endH === 24 ? [0] : minutes);
+
+  $effect(() => {
+    if (!endHours.includes(endH)) endH = endHours[1] ?? endHours[0];
+  });
+  $effect(() => {
+    if (!endMinutes.includes(endM)) endM = endMinutes[0];
+  });
+
+  function padTime(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  const startHoursDisplay = $derived(startHours.map(padTime));
+  const endHoursDisplay = $derived(endHours.map((h) => padTime(h % 24)));
+
+  const baseDate = $derived(new Date(selectedDate));
 
   $effect(() => {
     selectedStartDateTime = new Date(
-      new Date(selectedDate).setHours(Number(startH), Number(startM), 0, 0),
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      startH,
+      startM,
+      0,
+      0,
     );
   });
 
   $effect(() => {
     selectedEndDateTime = new Date(
-      new Date(selectedDate).setHours(Number(endH), Number(endM), 0, 0),
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      endH,
+      endM,
+      0,
+      0,
     );
-  });
-
-  $effect(() => {
-    endH = endHours[1] ?? endHours[0]; // Assign an updated value after filtering of end hours
   });
 </script>
 
 <div class="range">
   <div class="time">
-    <WheelColumn options={hours} bind:selected={startH} />
+    <WheelColumn
+      options={startHours}
+      display={startHoursDisplay}
+      bind:selected={startH}
+    />
     <span>:</span>
-    <WheelColumn options={minutes} bind:selected={startM} />
+    <WheelColumn
+      options={startMinutes}
+      display={startMinutes.map(padTime)}
+      bind:selected={startM}
+    />
   </div>
 
   <span class="arrow">→</span>
 
   <div class="time">
-    <WheelColumn options={endHours} bind:selected={endH} />
+    <WheelColumn
+      options={endHours}
+      display={endHoursDisplay}
+      bind:selected={endH}
+    />
     <span>:</span>
-    <WheelColumn options={endMinutes} bind:selected={endM} />
+    <WheelColumn
+      options={endMinutes}
+      display={endMinutes.map(padTime)}
+      bind:selected={endM}
+    />
   </div>
 </div>
 

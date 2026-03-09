@@ -21,7 +21,7 @@
     convertDateToZonedYYYYMMDD,
     formatDateToLocale,
     formatSlot,
-  } from '$lib/dateUtils';
+  } from '$lib/date-tools';
   import type {
     IAvailability,
     ICreateAvailability,
@@ -325,7 +325,7 @@
               maxDate: poll.end_date || undefined,
               dateFormat: 'yyyy-MM-dd',
               onSelect: ({ formattedDate }) => {
-                onCalendarDateClick(formattedDate);
+                onCalendarDateClick(formattedDate as string);
               },
               onRenderCell({ date, cellType }) {
                 const dateStr = date.toDateString();

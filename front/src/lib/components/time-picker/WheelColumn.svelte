@@ -3,8 +3,13 @@
 
   let {
     options,
+    display,
     selected = $bindable(),
-  }: { options: string[]; selected: string } = $props();
+  }: {
+    options: number[];
+    display: string[];
+    selected: number;
+  } = $props();
 
   let container: HTMLDivElement;
   const ITEM_H = 40;
@@ -109,8 +114,8 @@
   onpointercancel={onPointerUp}
 >
   <div class="pad"></div>
-  {#each options as opt}
-    <div class="item">{opt}</div>
+  {#each options, i}
+    <div class="item">{display[i]}</div>
   {/each}
   <div class="pad"></div>
 </div>

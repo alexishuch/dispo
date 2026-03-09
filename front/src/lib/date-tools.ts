@@ -1,33 +1,31 @@
 export const TIME_FORMATTER = new Intl.DateTimeFormat('fr-FR', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
+  timeStyle: 'short',
 });
+
 const DATE_FORMATTER = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'Europe/Paris',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
+  dateStyle: 'short'
 });
 
 export function formatSlot(
   slotStart: string,
   slotEnd: string,
-  returnDate = true,
+  displayDate = true,
 ) {
   const slotStartDate = new Date(slotStart);
   const slotEndDate = new Date(slotEnd);
-  const weekdayAndDate = returnDate
-    ? `${slotStartDate.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      })} `
-    : '';
-  const time = TIME_FORMATTER.formatRange(slotStartDate, slotEndDate);
 
-  return weekdayAndDate + time;
+  const weekdayAndDate =
+    `${slotStartDate.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })} `;
+
+  const time = `${TIME_FORMATTER.format(slotStartDate)} – ${TIME_FORMATTER.format(slotEndDate)}`;
+
+  return displayDate ? weekdayAndDate + time : time;
 }
 
 export function formatDateToLocale(dateString: string) {
