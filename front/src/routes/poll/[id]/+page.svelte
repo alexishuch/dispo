@@ -615,7 +615,7 @@
   @media (min-width: 320px) {
     .poll-date {
       display: inline-block;
-      &:last-child {
+      &:nth-child(3) {
         margin-left: 10px;
       }
     }
