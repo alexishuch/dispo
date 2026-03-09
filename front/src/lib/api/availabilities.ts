@@ -36,5 +36,5 @@ export async function deleteAvailability(slotId: string): Promise<void> {
   const path = `availabilities/${slotId}`;
   return handleApiRequest(path, {
     method: 'DELETE',
-  });
+  }, true);
 }

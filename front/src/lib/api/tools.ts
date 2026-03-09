@@ -3,25 +3,34 @@ import { API_BASE_URL } from './baseUrl';
 export async function handleApiRequest<T>(
   path: string,
   options?: RequestInit,
-  expectResponse = true,
-): Promise<T> {
+  expectResponse?: true
+): Promise<T>;
+
+export async function handleApiRequest<T>(
+  path: string,
+  options?: RequestInit,
+  expectResponse?: false
+): Promise<void>;
+
+export async function handleApiRequest<T>(
+  path: string,
+  options?: RequestInit,
+): Promise<T | void> {
   let res: Response;
   const url = new URL(path, API_BASE_URL);
 
   try {
     res = await fetch(url, options);
   } catch {
-    throw new Error('Serveur injoignable.');
+    throw new Error('Server is unreachable.');
   }
 
-  if (!res.ok) {
-    await handleError(res);
+  if (res.ok || res.status === 422) {
+    const text = await res.text();
+    return text ? JSON.parse(text) : undefined;
   }
 
-  if (!expectResponse) {
-    return (await res) as unknown as T;
-  }
-  return await res.json();
+  await handleResponseError(res);
 }
 
 export class HttpError extends Error {
@@ -34,13 +43,13 @@ export class HttpError extends Error {
   }
 }
 
-export async function handleError(res: Response): Promise<never> {
+export async function handleResponseError(res: Response): Promise<never> {
   let payload: any = null;
   try {
     payload = await res.json();
   } catch { }
 
-  const message = payload.message ?? 'Request failed';
+  const message = payload?.message ?? 'Request failed';
 
   throw new HttpError(message, res.status);
 }
@@ -63,5 +72,5 @@ export function getErrorMessage(error: unknown): string {
     if (typeof anyErr.message === 'string') return anyErr.message;
   }
 
-  return 'Erreur inconnue.';
+  return 'Unknown error.';
 }
