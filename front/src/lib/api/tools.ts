@@ -1,3 +1,4 @@
+import { error, isHttpError } from '@sveltejs/kit';
 import { API_BASE_URL } from './baseUrl';
 
 export async function handleApiRequest<T>(
@@ -33,16 +34,6 @@ export async function handleApiRequest<T>(
   await handleResponseError(res);
 }
 
-export class HttpError extends Error {
-  status?: number;
-
-  constructor(message: string, status?: number) {
-    super(message);
-    this.name = 'HttpError';
-    this.status = status;
-  }
-}
-
 export async function handleResponseError(res: Response): Promise<never> {
   let payload: any = null;
   try {
@@ -51,12 +42,12 @@ export async function handleResponseError(res: Response): Promise<never> {
 
   const message = payload?.message ?? 'Request failed';
 
-  throw new HttpError(message, res.status);
+  throw error(res.status, { message });
 }
 
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof HttpError) {
-    return error.status ? `${error.status} - ${error.message}` : error.message;
+  if (isHttpError(error)) {
+    return `${error.status} - ${error.body.message}`;
   }
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;

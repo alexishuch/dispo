@@ -1,5 +1,6 @@
+import { error } from '@sveltejs/kit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getErrorMessage, handleApiRequest, HttpError } from './tools';
+import { getErrorMessage, handleApiRequest } from './tools';
 
 describe('handleApiRequest', () => {
     beforeEach(() => {
@@ -78,19 +79,12 @@ describe('handleApiRequest', () => {
 
 describe('getErrorMessage', () => {
     it('should return an error message from an HttpError', () => {
-        const httpError = new HttpError("Not Found", 404);
+        let httpError: unknown;
+        try { error(404, { message: 'Not Found' }); } catch (e) { httpError = e; }
 
         const result = getErrorMessage(httpError);
 
         expect(result).toBe('404 - Not Found');
-    });
-
-    it('should return an error message from an HttpError without status', () => {
-        const httpError = new HttpError("Not Found");
-
-        const result = getErrorMessage(httpError);
-
-        expect(result).toBe("Not Found");
     });
 
     it('should return an error message from an Error', () => {

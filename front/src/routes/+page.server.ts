@@ -1,7 +1,7 @@
 import { createPoll } from '$lib/api/polls';
-import { getErrorMessage, HttpError } from '$lib/api/tools';
+import { getErrorMessage } from '$lib/api/tools';
 import type { IPoll } from '$lib/model';
-import { fail, redirect, type Actions } from '@sveltejs/kit';
+import { fail, isHttpError, redirect, type Actions } from '@sveltejs/kit';
 
 export const actions = {
   create: async ({ request }) => {
@@ -24,7 +24,7 @@ export const actions = {
       newPoll = await createPoll(name, start_date, end_date);
     } catch (e: unknown) {
       const message = getErrorMessage(e);
-      const status = e instanceof HttpError ? e.status || 500 : 422;
+      const status = isHttpError(e) ? e.status || 500 : 422;
       return fail(status, { error: message });
     }
 

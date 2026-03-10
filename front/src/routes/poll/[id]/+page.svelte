@@ -9,7 +9,7 @@
     deleteParticipant,
     getParticipant,
   } from '$lib/api/participants';
-  import { getErrorMessage, HttpError } from '$lib/api/tools';
+  import { getErrorMessage } from '$lib/api/tools';
   import {
     setCustomErrorToastMessage,
     setGenericErrorToastMessage,
@@ -27,6 +27,7 @@
     ICreateAvailability,
     IParticipantEnriched,
   } from '$lib/model';
+  import { isHttpError } from '@sveltejs/kit';
   import AirDatepicker from 'air-datepicker';
   import localeFr from 'air-datepicker/locale/fr';
   import { onMount, tick, untrack } from 'svelte';
@@ -144,7 +145,7 @@
       selectedStartDateTime = null;
       selectedEndDateTime = null;
     } catch (error) {
-      if (error instanceof HttpError && error.status === 409) {
+      if (isHttpError(error) && error.status === 409) {
         setCustomErrorToastMessage('Un créneau existe déjà sur cet horaire.');
       } else {
         setGenericErrorToastMessage(getErrorMessage(error));
@@ -189,7 +190,11 @@
         selectedUserId = newParticipant.id;
         newParticipantName = '';
       } catch (error) {
-        setGenericErrorToastMessage(getErrorMessage(error));
+        if (isHttpError(error) && error.status === 409) {
+          setCustomErrorToastMessage('Ce participant existe déjà.');
+        } else {
+          setGenericErrorToastMessage(getErrorMessage(error));
+        }
         console.error('❌ Failed to create participant:', error);
       } finally {
         isUpdatingParticipants = false;
