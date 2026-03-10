@@ -1,7 +1,7 @@
 import type { IParticipant, IParticipantEnriched } from '$lib/model';
 import { handleApiRequest } from './tools';
 
-export async function createParticipant(
+export function createParticipant(
   pollId: string,
   name: string,
 ): Promise<IParticipant> {
@@ -14,7 +14,7 @@ export async function createParticipant(
   return handleApiRequest(path, options);
 }
 
-export async function getParticipant(
+export function getParticipant(
   participantId: string,
 ): Promise<IParticipantEnriched> {
   const path = `participants/${participantId}`;
@@ -22,7 +22,7 @@ export async function getParticipant(
   return handleApiRequest(path);
 }
 
-export async function deleteParticipant(participantId: string): Promise<void> {
+export function deleteParticipant(participantId: string): Promise<void> {
   const path = `participants/${participantId}`;
   const options = {
     method: 'DELETE',

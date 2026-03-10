@@ -5,14 +5,14 @@ import type {
 } from '$lib/model';
 import { handleApiRequest } from './tools';
 
-export async function getCommonAvailabilities(
+export function getCommonAvailabilities(
   participantId: string,
 ): Promise<ICommonSlot[]> {
   const path = `availabilities/${participantId}/common`;
   return handleApiRequest(path);
 }
 
-export async function createAvailability(
+export function createAvailability(
   participantId: string,
   slot: ICreateAvailability,
 ): Promise<IAvailability> {
@@ -32,7 +32,7 @@ export async function createAvailability(
   return handleApiRequest(path, options);
 }
 
-export async function deleteAvailability(slotId: string): Promise<void> {
+export function deleteAvailability(slotId: string): Promise<void> {
   const path = `availabilities/${slotId}`;
   return handleApiRequest(path, {
     method: 'DELETE',
