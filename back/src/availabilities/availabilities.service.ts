@@ -27,8 +27,8 @@ export class AvailabilitiesService {
       throw new BadRequestException('Availability slot end date must be after start date');
     }
 
-    if (slot_start < poll.created_at) {
-      throw new BadRequestException(`Availability slot cannot start before poll creation date (${poll.created_at.toLocaleDateString()})`);
+    if (slot_start < new Date()) {
+      throw new BadRequestException('Availability slot cannot start in the past');
     }
 
     if (poll.start_date) {
@@ -130,7 +130,7 @@ ORDER BY count DESC, start_date;
     const availability = await this.availabilityRepository.findOne({ where: { id } });
     if (!availability) throw new NotFoundException('Availability not found');
     const slot = formatDateToPGSlotRange(updateAvailabilityDto.slot_start, updateAvailabilityDto.slot_end);
-    this.availabilityRepository.merge(availability, { slot })
+    this.availabilityRepository.merge(availability, { slot });
 
     try {
       const savedAvailability = await this.availabilityRepository.save(availability);

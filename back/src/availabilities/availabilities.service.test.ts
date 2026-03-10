@@ -41,6 +41,9 @@ describe('AvailabilitiesService', () => {
     availabilityRepository = module.get<Repository<Availability>>(getRepositoryToken(Availability));
     participantRepository = module.get<Repository<Participant>>(getRepositoryToken(Participant));
     pollRepository = module.get<Repository<Poll>>(getRepositoryToken(Poll));
+
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-01-01'));
   });
 
   afterEach(async () => {
@@ -50,6 +53,8 @@ describe('AvailabilitiesService', () => {
 
   afterAll(async () => {
     await dataSource.destroy();
+    jest.setSystemTime(jest.getRealSystemTime());
+    jest.useRealTimers();
   });
 
   describe('create', () => {
@@ -117,18 +122,18 @@ describe('AvailabilitiesService', () => {
       await expect(result).rejects.toThrow('Availability slot end date must be after start date');
     });
 
-    it('should throw BadRequestException if slot_start is before poll created_at', async () => {
-      const poll = await pollRepository.save(testPollData);
+    it('should throw BadRequestException if slot_start is in the past', async () => {
+      const poll = await pollRepository.save({ name: 'Test Poll', created_at: new Date('2024-11-30') });
       const participant = await participantRepository.save({ ...testParticipantData, poll });
       const createDto: CreateAvailabilityDto = {
         participantId: participant.id,
-        slot_start: new Date('2020-01-01T10:00:00Z'),
-        slot_end: new Date('2020-01-01T11:00:00Z'),
+        slot_start: new Date('2024-12-01T10:00:00Z'),
+        slot_end: new Date('2024-12-01T11:00:00Z'),
       };
 
       const result = service.create(createDto);
 
-      await expect(result).rejects.toThrow('Availability slot cannot start before poll creation date');
+      await expect(result).rejects.toThrow('Availability slot cannot start in the past');
     });
 
     it('should throw BadRequestException if slot_start is before poll start_date', async () => {
