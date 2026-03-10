@@ -42,8 +42,8 @@
   let participant = $state<IParticipantEnriched | null>(null);
   let newParticipantName = $state<string>('');
 
-  let isUpdatingParticipants = $state(false);
   let isAddingSlot = $state(false);
+  let isUpdatingParticipants = $state(false);
   let isDeletingParticipant = $state(false);
 
   let selectedDate = $state<string>('');
@@ -263,7 +263,7 @@
 <div id="poll-header">
   <div id="poll-info">
     <h2>{data.poll.name}</h2>
-    {#if data.poll.start_date}
+    {#if data.poll.start_date && new Date(data.poll.start_date) > new Date()}
       <p class="poll-date">
         Début : {formatDateToLocale(data.poll.start_date)}
       </p>

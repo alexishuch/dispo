@@ -7,15 +7,14 @@ export const actions = {
   create: async ({ request }) => {
     const formData = await request.formData();
     const name = String(formData.get('name'));
-    const start_date = String(formData.get('start_date'));
+    const start_date = String(formData.get('start_date')) || undefined;
     const end_date = String(formData.get('end_date')) || undefined;
     let newPoll: IPoll;
 
-    if (!name || !start_date) {
+    if (!name) {
       return fail(400, {
         missing: {
           name: !name,
-          start_date: !start_date,
         },
       });
     }

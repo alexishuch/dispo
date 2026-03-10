@@ -24,7 +24,7 @@
     };
   }}
 >
-  <label for="name">Nom du sondage :</label>
+  <label for="name">Nom du sondage</label>
   <input
     id="name"
     name="name"
@@ -36,20 +36,10 @@
     <p class="error-message">Le nom est requis</p>
   {/if}
 
-  <label for="start_date">Date de début :</label>
-  <input
-    id="start_date"
-    name="start_date"
-    type="date"
-    value={today}
-    class:error={form?.missing?.start_date}
-    required
-  />
-  {#if form?.missing?.start_date}
-    <p class="error-message">La date de début est requise</p>
-  {/if}
+  <label for="start_date">Date de début <span>(optionnel)</span></label>
+  <input id="start_date" name="start_date" type="date" />
 
-  <label for="end_date">Date de fin :</label>
+  <label for="end_date">Date de fin <span>(optionnel)</span></label>
   <input id="end_date" name="end_date" type="date" />
 
   <button type="submit" disabled={submitting}>
@@ -64,6 +54,11 @@
 
   input {
     margin-bottom: 0.25rem;
+  }
+
+  label span {
+    font-weight: 300;
+    font-size: 0.8rem;
   }
 
   input.error {
