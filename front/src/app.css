@@ -112,7 +112,7 @@ form label {
   display: block;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 0;
+  margin-bottom: -2px;
   padding: 0;
   background: none;
   border: none;
@@ -120,7 +120,7 @@ form label {
 }
 
 input[type='date'] {
-  padding: 10px 14px;
+  padding: 0.7rem;
   border: 2px solid var(--border);
   border-radius: var(--radius);
   transition: border-color 0.2s;
@@ -135,7 +135,8 @@ input[type='date']:focus {
 input[type='text'],
 input:not([type='radio']) {
   flex: 1;
-  padding: 10px 14px;
+  margin-top: 2px;
+  padding: 0.7rem;
   border: 2px solid var(--border);
   border-radius: var(--radius);
   transition: border-color 0.2s;
@@ -156,7 +157,7 @@ input:disabled {
 
 /* Buttons */
 button {
-  padding: 10px 20px;
+  padding: 10px 25px;
   background: var(--primary-color);
   color: white;
   border: none;
@@ -176,12 +177,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-button[type='button'] {
-  background: var(--surface);
-  color: var(--text-primary);
-  border: 2px solid var(--border);
-  margin-top: 16px;
-}
 
 button[type='button']:hover:not(:disabled) {
   background: var(--border);
@@ -205,7 +200,7 @@ button.validate-btn {
 
 button.fixed-btn,
 button[type="submit"] {
-  padding: 1rem;
+  padding: 0.9rem;
 }
 
 button.fixed-btn {
