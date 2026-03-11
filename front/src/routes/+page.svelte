@@ -4,6 +4,7 @@
 
   let { form } = $props();
   let today = new Date().toLocaleDateString('en-CA');
+  let startDate = $state('');
   let submitting = $state(false);
 </script>
 
@@ -36,10 +37,16 @@
   {/if}
 
   <label for="start_date">Date de début <span>(optionnel)</span></label>
-  <input id="start_date" name="start_date" type="date" />
+  <input
+    id="start_date"
+    name="start_date"
+    type="date"
+    min={today}
+    bind:value={startDate}
+  />
 
   <label for="end_date">Date de fin <span>(optionnel)</span></label>
-  <input id="end_date" name="end_date" type="date" />
+  <input id="end_date" name="end_date" type="date" min={startDate || today} />
 
   <button type="submit" class="fixed-btn" disabled={submitting}>
     {submitting ? 'Création...' : 'Créer le sondage'}
