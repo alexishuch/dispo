@@ -1,6 +1,5 @@
 <script>
   import { page } from '$app/state';
-  console.log(page);
 </script>
 
 <svelte:head>

@@ -18,7 +18,6 @@ export function getParticipant(
   participantId: string,
 ): Promise<IParticipantEnriched> {
   const path = `participants/${participantId}`;
-  console.log('getParticipant', path);
   return handleApiRequest(path);
 }
 

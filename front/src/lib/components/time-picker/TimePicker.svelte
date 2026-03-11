@@ -38,8 +38,6 @@
 
   $effect(() => {
     if (!startHours.includes(startH)) startH = startHours[0];
-    console.log(startH);
-    console.log(startMinutes);
   });
   $effect(() => {
     if (!startMinutes.includes(startM)) startM = startMinutes[0];
