@@ -19,3 +19,11 @@ export function getPoll(id: string): Promise<IPollEnriched> {
   const path = `polls/${id}/computed`;
   return handleApiRequest(path);
 }
+
+export function deletePoll(pollId: string): Promise<void> {
+  const path = `polls/${pollId}`;
+  const options = {
+    method: 'DELETE',
+  };
+  return handleApiRequest(path, options, false);
+}

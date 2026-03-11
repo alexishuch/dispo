@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import {
     createAvailability,
     deleteAvailability,
@@ -9,9 +10,10 @@
     deleteParticipant,
     getParticipant,
   } from '$lib/api/participants';
+  import { deletePoll } from '$lib/api/polls';
   import { getErrorMessage } from '$lib/api/tools';
   import {
-    setCustomErrorToastMessage,
+    setCustomToastMessage,
     setGenericErrorToastMessage,
   } from '$lib/components/error-notification/errorToast.svelte';
   import Modal from '$lib/components/modal/Modal.svelte';
@@ -45,6 +47,7 @@
   let isAddingSlot = $state(false);
   let isUpdatingParticipants = $state(false);
   let isDeletingParticipant = $state(false);
+  let isDeletingPoll = $state(false);
 
   let selectedDate = $state<string>('');
   let slotsForDay = $derived.by(() => {
@@ -146,7 +149,10 @@
       selectedEndDateTime = null;
     } catch (error) {
       if (isHttpError(error) && error.status === 409) {
-        setCustomErrorToastMessage('Un créneau existe déjà sur cet horaire.');
+        setCustomToastMessage(
+          'Un créneau existe déjà sur cet horaire.',
+          'error',
+        );
       } else {
         setGenericErrorToastMessage(getErrorMessage(error));
       }
@@ -191,7 +197,7 @@
         newParticipantName = '';
       } catch (error) {
         if (isHttpError(error) && error.status === 409) {
-          setCustomErrorToastMessage('Ce participant existe déjà.');
+          setCustomToastMessage('Ce participant existe déjà.', 'error');
         } else {
           setGenericErrorToastMessage(getErrorMessage(error));
         }
@@ -227,9 +233,21 @@
         participantSnapshot,
       );
       console.error('❌ Failed to delete participant:', error);
-      throw error;
+      setCustomToastMessage('Impossible de supprimer le participant.', 'error');
     } finally {
       isUpdatingParticipants = false;
+    }
+  }
+
+  async function handlePollDeletion() {
+    try {
+      await deletePoll(data.poll.id);
+      isDeletingPoll = false;
+      goto('/', { replaceState: true });
+      setCustomToastMessage('Le sondage a été supprimé.', 'success');
+    } catch (error) {
+      console.error('❌ Failed to delete participant:', error);
+      setCustomToastMessage('Impossible de supprimer le sondage.', 'error');
     }
   }
 
@@ -282,6 +300,14 @@
   emoji={'⚠️'}
   callback={handleParticipantDeletion}
   >Souhaitez-vous vraiment supprimer le participant et ses disponibilités ?</Modal
+>
+
+<Modal
+  bind:showModal={isDeletingPoll}
+  emoji={'⚠️'}
+  callback={handlePollDeletion}
+  >Souhaitez-vous vraiment supprimer le sondage ? Tous les participants et
+  créneaux seront supprimés.</Modal
 >
 
 {#if selectedUserId}
@@ -463,6 +489,13 @@
         {isUpdatingParticipants ? 'Création...' : 'Créer'}
       </button>
     </form>
+
+    <button
+      class="fixed-btn danger-btn"
+      onclick={() => (isDeletingPoll = true)}
+    >
+      Supprimer le sondage
+    </button>
   </div>
 {/if}
 
@@ -627,10 +660,6 @@
   }
 
   @media (max-width: 650px) {
-    button {
-      padding: 10px;
-    }
-
     #poll-header,
     #participant-header {
       flex-direction: column;

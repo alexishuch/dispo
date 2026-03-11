@@ -42,7 +42,7 @@
   <label for="end_date">Date de fin <span>(optionnel)</span></label>
   <input id="end_date" name="end_date" type="date" />
 
-  <button type="submit" disabled={submitting}>
+  <button type="submit" class="fixed-btn" disabled={submitting}>
     {submitting ? 'Création...' : 'Créer le sondage'}
   </button>
 </form>
@@ -69,16 +69,5 @@
   .error-message {
     color: red;
     font-size: 0.85rem;
-  }
-
-  button[type='submit'] {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 90%;
-    max-width: 760px;
-    margin: 1rem auto;
-    padding: 1rem;
   }
 </style>

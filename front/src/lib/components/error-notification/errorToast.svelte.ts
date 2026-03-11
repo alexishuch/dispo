@@ -1,21 +1,22 @@
 import { getErrorMessage } from "$lib/api/tools";
 
-let message = $state('');
+export const toast = $state({
+  message: '',
+  level: undefined as 'error' | 'success' | undefined
+});
 
-export function getErrorToastMessage() {
-  return message;
+export function setCustomToastMessage(msg: string, lvl: 'error' | 'success') {
+  toast.message = msg;
+  toast.level = lvl;
 }
 
 export function setGenericErrorToastMessage(error: unknown) {
   const genericMessage = "Une erreur est survenue.<br />";
   const errorMessage = `<code>` + getErrorMessage(error) + `</code>`;
-  message = genericMessage + errorMessage;
-}
-
-export function setCustomErrorToastMessage(errorMessage: string) {
-  message = errorMessage;
+  toast.message = genericMessage + errorMessage;
 }
 
 export function clearErrorToast() {
-  message = '';
+  toast.message = '';
+  toast.level = undefined;
 }
