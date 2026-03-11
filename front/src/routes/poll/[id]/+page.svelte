@@ -11,11 +11,7 @@
     getParticipant,
   } from '$lib/api/participants';
   import { deletePoll } from '$lib/api/polls';
-  import { getErrorMessage } from '$lib/api/tools';
-  import {
-    setCustomToastMessage,
-    setGenericErrorToastMessage,
-  } from '$lib/components/error-notification/errorToast.svelte';
+  import { setToastMessage } from '$lib/components/error-notification/errorToast.svelte';
   import Modal from '$lib/components/modal/Modal.svelte';
   import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
@@ -84,7 +80,7 @@
       })
       .catch((error) => {
         selectedUserId = null;
-        setGenericErrorToastMessage(error);
+        setToastMessage('Impossible de récupérer le participant.', 'error');
         return Promise.reject(error);
       });
 
@@ -149,12 +145,9 @@
       selectedEndDateTime = null;
     } catch (error) {
       if (isHttpError(error) && error.status === 409) {
-        setCustomToastMessage(
-          'Un créneau existe déjà sur cet horaire.',
-          'error',
-        );
+        setToastMessage('Un créneau existe déjà sur cet horaire.', 'error');
       } else {
-        setGenericErrorToastMessage(getErrorMessage(error));
+        setToastMessage("Impossible d'ajouter le créneau.", 'error');
       }
       console.error('❌ Failed to create slot', error);
     }
@@ -178,9 +171,8 @@
       commonSlots = await getCommonAvailabilities(data.poll.id);
     } catch (error) {
       participant.availabilities.splice(existingSlotIndex, 0, slotSnapshot);
-      setGenericErrorToastMessage(getErrorMessage(error));
+      setToastMessage('Impossible de supprimer le créneau.', 'error');
       console.error('❌ Failed to delete slot', error);
-    } finally {
     }
   }
 
@@ -197,9 +189,9 @@
         newParticipantName = '';
       } catch (error) {
         if (isHttpError(error) && error.status === 409) {
-          setCustomToastMessage('Ce participant existe déjà.', 'error');
+          setToastMessage('Ce participant existe déjà.', 'error');
         } else {
-          setGenericErrorToastMessage(getErrorMessage(error));
+          setToastMessage('Impossible de créer le participant.', 'error');
         }
         console.error('❌ Failed to create participant:', error);
       } finally {
@@ -226,6 +218,7 @@
       await deleteParticipant(selectedUserId);
       selectedUserId = null;
       selectedDate = '';
+      setToastMessage('Le participant a été supprimé.', 'success');
     } catch (error) {
       data.poll.participants.splice(
         existingParticipantIndex,
@@ -233,7 +226,7 @@
         participantSnapshot,
       );
       console.error('❌ Failed to delete participant:', error);
-      setCustomToastMessage('Impossible de supprimer le participant.', 'error');
+      setToastMessage('Impossible de supprimer le participant.', 'error');
     } finally {
       isUpdatingParticipants = false;
     }
@@ -244,10 +237,10 @@
       await deletePoll(data.poll.id);
       isDeletingPoll = false;
       goto('/', { replaceState: true });
-      setCustomToastMessage('Le sondage a été supprimé.', 'success');
+      setToastMessage('Le sondage a été supprimé.', 'success');
     } catch (error) {
       console.error('❌ Failed to delete participant:', error);
-      setCustomToastMessage('Impossible de supprimer le sondage.', 'error');
+      setToastMessage('Impossible de supprimer le sondage.', 'error');
     }
   }
 
