@@ -101,11 +101,6 @@
   .error-message {
     padding-top: 1rem;
     color: red;
-
-    & a {
-      color: red;
-      text-decoration: underline;
-    }
   }
 
   .buttons {
@@ -113,5 +108,16 @@
     display: flex;
     justify-content: center;
     gap: 1rem;
+  }
+
+  @media (max-width: 320px) {
+    dialog {
+      padding: 0.2rem 0.5rem 1rem 0.5rem;
+    }
+
+    .buttons {
+      flex-direction: column;
+      margin-top: 0;
+    }
   }
 </style>

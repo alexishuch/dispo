@@ -424,7 +424,6 @@
               {formatSlot(slot.slot_start, slot.slot_end, false)}
               <button
                 onclick={() => deleteSlot(slot.id)}
-                class="slot-delete-button"
                 title="Supprimer ce créneau"
               >
                 🗑️
@@ -484,7 +483,7 @@
     </form>
 
     <button
-      class="fixed-btn danger-btn"
+      class="large-btn danger-btn"
       onclick={() => (isDeletingPoll = true)}
     >
       Supprimer le sondage
@@ -657,7 +656,7 @@
     #participant-header {
       flex-direction: column;
       gap: 0px;
-      margin-top: 0;
+      margin-top: 0.5rem;
     }
 
     #participant-header {
@@ -680,6 +679,11 @@
       & input {
         margin-bottom: 1rem;
       }
+    }
+
+    .large-btn {
+      width: 100%;
+      margin-top: 1rem;
     }
 
     #poll-info {

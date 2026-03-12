@@ -8,6 +8,7 @@
   let submitting = $state(false);
 </script>
 
+
 <form
   method="post"
   action="?/create"
@@ -48,16 +49,12 @@
   <label for="end_date">Date de fin <span>(optionnel)</span></label>
   <input id="end_date" name="end_date" type="date" min={startDate || today} />
 
-  <button type="submit" class="fixed-btn" disabled={submitting}>
-    {submitting ? 'Création...' : 'Créer le sondage'}
+  <button type="submit" class="large-btn" disabled={submitting}>
+    {submitting ? 'Création...' : 'Créer un sondage'}
   </button>
 </form>
 
 <style>
-  form {
-    padding-top: 1rem;
-  }
-
   input {
     margin-bottom: 0.25rem;
   }
