@@ -1,5 +1,5 @@
 import { error, isHttpError } from '@sveltejs/kit';
-import { API_BASE_URL } from './baseUrl';
+import { getApiBaseUrl } from './baseUrl';
 
 export async function handleApiRequest<T>(
   path: string,
@@ -18,7 +18,7 @@ export async function handleApiRequest<T>(
   options?: RequestInit,
 ): Promise<T | void> {
   let res: Response;
-  const url = new URL(path, API_BASE_URL);
+  const url = new URL(path, getApiBaseUrl());
 
   try {
     res = await fetch(url, options);
