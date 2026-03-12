@@ -28,10 +28,6 @@ body {
   margin-right: auto;
 }
 
-header {
-  margin-bottom: 0.8rem;
-}
-
 /* Typography */
 h1,
 h2,
@@ -79,11 +75,6 @@ label {
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s;
-}
-
-label:hover {
-  border-color: var(--primary-color);
-  background: #eef2ff;
 }
 
 input,
@@ -168,34 +159,53 @@ button {
   white-space: nowrap;
 }
 
-button:hover:not(:disabled) {
-  background: var(--primary-hover);
+button {
+  --interaction-bg: var(--primary-hover);
+}
+
+button.danger-btn {
+  background: lightcoral;
+  --interaction-bg: rgba(255, 0, 0, 0.6);
+}
+
+button.validate-btn {
+  background: lightgreen;
+  --interaction-bg: green;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:hover:not(:disabled) {
+    background: var(--interaction-bg);
+  }
+
+  button:focus-visible:not(:disabled) {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  label:hover {
+    border-color: var(--primary-color);
+    background: #eef2ff;
+  }
+}
+
+@media (hover: none),
+(pointer: coarse) {
+  button:active:not(:disabled) {
+    background: var(--interaction-bg);
+  }
+
+  button:focus,
+  button:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-
-button[type='button']:hover:not(:disabled) {
-  background: var(--border);
-}
-
-button.danger-btn {
-  background: lightcoral;
-
-  &:hover {
-    background: red;
-  }
-}
-
-button.validate-btn {
-  background: lightgreen;
-
-  &:hover {
-    background: green;
-  }
 }
 
 button.fixed-btn,
@@ -247,11 +257,7 @@ ul ul li {
     padding: 12px;
   }
 
-  button {
-    /* padding: 10px !important; */
-
-    &.fixed-btn {
-      width: 95%
-    }
+  button.fixed-btn {
+    width: 95%
   }
 }
