@@ -8,6 +8,16 @@
   let submitting = $state(false);
 </script>
 
+<p>Le sondage ultra simple</p>
+
+<h3>Comment ça marche ? 🤔</h3>
+<ol>
+  <li>Crée un sondage</li>
+  <li>Renseigne un ou plusieurs participants</li>
+  <li>Renseigne des dates (pour toi ou plusieurs personnes)</li>
+  <li>Les meilleurs créneaux s'affichent automatiquement ✨</li>
+  <li>Garde précieusement le lien du sondage et partage le aux autres !</li>
+</ol>
 
 <form
   method="post"

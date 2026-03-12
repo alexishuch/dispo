@@ -478,7 +478,7 @@
         required
       />
       <button type="submit" disabled={isUpdatingParticipants}>
-        {isUpdatingParticipants ? 'Création...' : 'Créer'}
+        {isUpdatingParticipants ? 'Ajout...' : 'Ajouter'}
       </button>
     </form>
 
