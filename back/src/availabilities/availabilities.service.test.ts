@@ -43,7 +43,7 @@ describe('AvailabilitiesService', () => {
     pollRepository = module.get<Repository<Poll>>(getRepositoryToken(Poll));
 
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-01-01'));
+    jest.setSystemTime(new Date('2024-12-01'));
   });
 
   afterEach(async () => {
@@ -123,12 +123,12 @@ describe('AvailabilitiesService', () => {
     });
 
     it('should throw BadRequestException if slot_start is in the past', async () => {
-      const poll = await pollRepository.save({ name: 'Test Poll', created_at: new Date('2024-11-30') });
+      const poll = await pollRepository.save({ name: 'Test Poll', created_at: new Date('2024-10-01') });
       const participant = await participantRepository.save({ ...testParticipantData, poll });
       const createDto: CreateAvailabilityDto = {
         participantId: participant.id,
-        slot_start: new Date('2024-12-01T10:00:00Z'),
-        slot_end: new Date('2024-12-01T11:00:00Z'),
+        slot_start: new Date('2024-11-01T10:00:00Z'),
+        slot_end: new Date('2024-11-01T11:00:00Z'),
       };
 
       const result = service.create(createDto);
@@ -192,22 +192,30 @@ describe('AvailabilitiesService', () => {
   });
 
   describe('findCommonSlots', () => {
-    it('should return common slots for a poll', async () => {
+    it('should only return upcoming common slots for a poll', async () => {
       const poll = await pollRepository.save({ name: 'Overlap Poll' });
       const john = await participantRepository.save({ name: 'John', poll });
       const jane = await participantRepository.save({ name: 'Jane', poll });
       await availabilityRepository.save([
         {
           participant: john,
-          slot: '{["2025-01-01 09:00:00+00", "2025-01-01 11:30:00+00"]}',
+          slot: '{["2024-12-15 09:00:00+00", "2024-12-15 11:30:00+00"]}',
+        },
+        {
+          participant: jane,
+          slot: '{["2024-12-15 10:00:00+00", "2024-12-15 12:00:00+00"]}',
         },
         {
           participant: john,
-          slot: '{["2025-01-01 13:00:00+00", "2025-01-01 15:00:00+00"]}',
+          slot: '{["2025-01-01 09:00:00+00", "2025-01-01 11:30:00+00"]}',
         },
         {
           participant: jane,
           slot: '{["2025-01-01 10:00:00+00", "2025-01-01 12:00:00+00"]}',
+        },
+        {
+          participant: john,
+          slot: '{["2025-01-01 13:00:00+00", "2025-01-01 15:00:00+00"]}',
         },
         {
           participant: jane,

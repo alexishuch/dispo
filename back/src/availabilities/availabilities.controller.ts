@@ -17,7 +17,7 @@ export class AvailabilitiesController {
   }
 
   @Get(':id/common')
-  find(@Param('id') id: string) {
+  findCommon(@Param('id') id: string) {
     return this.availabilitiesService.findCommonSlots(id);
   }
 

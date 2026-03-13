@@ -86,23 +86,13 @@ WITH participant_ranges AS (
   JOIN "Participants" p ON a.participant_id = p.id
   WHERE p.poll_id = $1
 ),
-bounds AS (
-  SELECT lower(slot) AS b FROM participant_ranges
-  UNION
-  SELECT upper(slot) AS b FROM participant_ranges
-),
-ordered_bounds AS (
-  SELECT b, lead(b) OVER (ORDER BY b) AS next_b
-  FROM bounds
-),
-ordered_bounds_filtered AS (
-  SELECT b, next_b
-  FROM ordered_bounds
-  WHERE next_b IS NOT NULL
-),
 segments AS (
-  SELECT tsrange(b, next_b) AS seg
-  FROM ordered_bounds_filtered
+  SELECT tsrange(b, lead(b) OVER (ORDER BY b)) AS seg
+  FROM (
+    SELECT lower(slot) AS b FROM participant_ranges
+    UNION
+    SELECT upper(slot) FROM participant_ranges
+  ) bounds
 ),
 segment_participants AS (
   SELECT
@@ -110,17 +100,18 @@ segment_participants AS (
     ARRAY_AGG(DISTINCT pr.participant_name ORDER BY pr.participant_name) AS participants_names,
     COUNT(DISTINCT pr.participant_id) AS count
   FROM segments s
-  LEFT JOIN participant_ranges pr ON pr.slot && s.seg
+  JOIN participant_ranges pr ON pr.slot && s.seg
+  WHERE seg IS NOT NULL
+    AND lower(seg) > NOW()
   GROUP BY seg
   HAVING COUNT(DISTINCT pr.participant_id) >= 2
 )
 SELECT
-  MIN(lower(seg)) AS start_date,
-  MAX(upper(seg)) AS end_date,
-  MAX(count) AS count,
+  lower(seg) AS start_date,
+  upper(seg) AS end_date,
+  count,
   participants_names
 FROM segment_participants
-GROUP BY seg, participants_names
 ORDER BY count DESC, start_date;
 `;
     return this.availabilityRepository.query(sql, [pollId]);
