@@ -63,7 +63,7 @@ describe('ParticipantsService', () => {
 
       expect(result).toEqual({
         name: 'John Doe',
-        poll,
+        pollId: poll.id,
         id: expect.any(String)
       });
       expect(stored).toEqual({

@@ -5,7 +5,7 @@ import { Poll } from 'src/polls/models/poll.entity';
 import { QueryFailedError, Repository } from 'typeorm';
 import { Participant } from './models/participant.entity';
 import { CreateParticipantDto, UpdateParticipantDto } from './models/participants.dto';
-import { IParticipant, IParticipantWithAvailabilities } from './models/participants.interface';
+import { ICreatedParticipant, IParticipant, IParticipantWithAvailabilities } from './models/participants.interface';
 
 @Injectable()
 export class ParticipantsService {
@@ -16,7 +16,7 @@ export class ParticipantsService {
     private readonly pollRepository: Repository<Poll>,
   ) { }
 
-  async create(createParticipantDto: CreateParticipantDto): Promise<Participant> {
+  async create(createParticipantDto: CreateParticipantDto): Promise<ICreatedParticipant> {
     const participant = new Participant();
     participant.name = createParticipantDto.name;
 
@@ -25,7 +25,8 @@ export class ParticipantsService {
     participant.poll = poll;
 
     try {
-      return await this.participantRepository.save(participant);
+      const { id, name, poll } = await this.participantRepository.save(participant);
+      return { id, name, pollId: poll.id };
     } catch (error) {
       if (
         error instanceof QueryFailedError &&

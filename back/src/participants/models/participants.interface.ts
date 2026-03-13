@@ -12,3 +12,7 @@ export interface IParticipantWithAvailabilities extends IParticipant {
 export interface ICreateParticipant extends Pick<IParticipant, 'name'> {
   pollId: string;
 }
+
+export interface ICreatedParticipant extends IParticipant {
+  pollId: string;
+}
