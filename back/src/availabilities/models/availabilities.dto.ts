@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsDate, IsUUID } from 'class-validator';
 
-import { PickType } from '@nestjs/mapped-types';
 import { ICreateAvailability } from './availabilities.interface';
 
 export class CreateAvailabilityDto implements ICreateAvailability {
@@ -15,7 +14,4 @@ export class CreateAvailabilityDto implements ICreateAvailability {
 
   @IsUUID()
   participantId: string;
-}
-
-export class UpdateAvailabilityDto extends PickType(CreateAvailabilityDto, ['slot_start', 'slot_end']) {
 }

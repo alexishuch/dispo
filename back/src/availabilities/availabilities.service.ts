@@ -4,7 +4,7 @@ import { deserializeAvailability, formatDateToPGSlotRange } from 'src/availabili
 import { Participant } from 'src/participants/models/participant.entity';
 import { ICommonSlot } from 'src/polls/models/polls.interface';
 import { QueryFailedError, Repository } from 'typeorm';
-import { CreateAvailabilityDto, UpdateAvailabilityDto } from './models/availabilities.dto';
+import { CreateAvailabilityDto } from './models/availabilities.dto';
 import { IAvailability } from './models/availabilities.interface';
 import { Availability } from './models/availability.entity';
 
@@ -80,7 +80,7 @@ export class AvailabilitiesService {
     // 6. Display the segments with start_date, end_date, count of participants, and list of participant names
 
     const sql = `
-  WITH participant_ranges AS (
+WITH participant_ranges AS (
   SELECT p.id AS participant_id, p.name AS participant_name, slot
   FROM "Availabilities" a
   JOIN "Participants" p ON a.participant_id = p.id
@@ -105,7 +105,7 @@ segments AS (
   FROM ordered_bounds_filtered
 ),
 segment_participants AS (
-  SELECT 
+  SELECT
     seg,
     ARRAY_AGG(DISTINCT pr.participant_name ORDER BY pr.participant_name) AS participants_names,
     COUNT(DISTINCT pr.participant_id) AS count
@@ -124,27 +124,6 @@ GROUP BY seg, participants_names
 ORDER BY count DESC, start_date;
 `;
     return this.availabilityRepository.query(sql, [pollId]);
-  }
-
-  async update(id: string, updateAvailabilityDto: UpdateAvailabilityDto): Promise<IAvailability> {
-    const availability = await this.availabilityRepository.findOne({ where: { id } });
-    if (!availability) throw new NotFoundException('Availability not found');
-    const slot = formatDateToPGSlotRange(updateAvailabilityDto.slot_start, updateAvailabilityDto.slot_end);
-    this.availabilityRepository.merge(availability, { slot });
-
-    try {
-      const savedAvailability = await this.availabilityRepository.save(availability);
-      // Slots are stored as ranges in Postgres, need to deserialize before returning
-      return deserializeAvailability(savedAvailability);
-    } catch (error) {
-      if (
-        error instanceof QueryFailedError &&
-        error.driverError?.code === '23P01'
-      ) {
-        throw new ConflictException('Participant already has an overlapping or identical slot');
-      }
-      throw error;
-    }
   }
 
   async remove(id: string): Promise<void> {

@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { AvailabilitiesService } from './availabilities.service';
-import { CreateAvailabilityDto, UpdateAvailabilityDto } from './models/availabilities.dto';
+import { CreateAvailabilityDto } from './models/availabilities.dto';
 
 @Controller('availabilities')
 export class AvailabilitiesController {
@@ -19,11 +19,6 @@ export class AvailabilitiesController {
   @Get(':id/common')
   find(@Param('id') id: string) {
     return this.availabilitiesService.findCommonSlots(id);
-  }
-
-  @Patch(':id')
-  patch(@Param('id') id: string, @Body() updateAvailabilityDto: UpdateAvailabilityDto) {
-    return this.availabilitiesService.update(id, updateAvailabilityDto)
   }
 
   @Delete(':id')
