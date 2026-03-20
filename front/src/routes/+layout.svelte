@@ -1,5 +1,5 @@
 <script lang="ts">
-  import favicon from '$lib/assets/favicon.svg';
+  import favicon from '$lib/assets/favicon.ico';
   import ErrorNotification from '$lib/components/error-notification/ErrorNotification.svelte';
   import { onMount } from 'svelte';
   import '../app.css';
@@ -28,7 +28,7 @@
 </svelte:head>
 
 <header>
-  <a href="/"><h1>Dispo? 📆</h1></a>
+  <a href="/"><h1>🗓 Dispo?</h1></a>
 </header>
 
 {@render children()}
