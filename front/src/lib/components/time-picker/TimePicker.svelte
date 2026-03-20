@@ -126,7 +126,7 @@
   .range {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 0.8rem;
   }
 
@@ -136,6 +136,8 @@
     border-radius: 12px;
     background: #f5f5f5;
     position: relative;
+    flex-grow: 1;
+    justify-content: center;
   }
 
   .time::after {
@@ -152,7 +154,12 @@
   }
 
   @media (min-width: 340px) {
+    .range {
+      justify-content: center;
+    }
+
     .time {
+      flex-grow: initial;
       gap: 4px;
       padding: 0 8px;
     }

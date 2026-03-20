@@ -26,6 +26,7 @@ body {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+  overflow-x: hidden;
 }
 
 /* Typography */
@@ -47,6 +48,10 @@ h2 {
 
 h1 {
   font-size: 2em;
+}
+
+h2 {
+  word-wrap: break-word;
 }
 
 p {
@@ -258,5 +263,11 @@ ul ul li {
 
   .large-btn {
     margin-top: 1rem;
+  }
+}
+
+@media (max-width: 320px) {
+  h1 {
+    text-align: center;
   }
 }

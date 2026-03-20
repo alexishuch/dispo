@@ -540,29 +540,18 @@
     gap: 10px;
 
     & button {
-      max-width: 30%;
+      min-width: 6rem;
     }
 
     & .buttons {
       display: flex;
-      max-width: 40%;
       gap: 0.5rem;
-
-      & button {
-        min-width: 3rem;
-      }
     }
   }
 
   /* Participant info section */
   p {
     text-align: center;
-  }
-
-  @media (max-width: 550px) {
-    .wrap {
-      display: inline-block;
-    }
   }
 
   .participants-tags {
@@ -642,11 +631,44 @@
     }
   }
 
+  @media (max-width: 320px) {
+    #participant-header .buttons {
+      flex-direction: column;
+    }
+  }
+
   @media (min-width: 320px) {
     .poll-date {
       display: inline-block;
       &:nth-child(3) {
         margin-left: 10px;
+      }
+    }
+  }
+
+  @media (max-width: 550px) {
+    .wrap {
+      display: inline-block;
+    }
+  }
+
+  @media (max-width: 375px) {
+    #datepicker {
+      margin-bottom: 0;
+    }
+
+    #day-header {
+      text-align: center;
+      flex-direction: column;
+      margin-bottom: 1.5rem;
+      gap: 0;
+
+      & .buttons {
+        width: 100%;
+      }
+
+      & button {
+        width: 100%;
       }
     }
   }
@@ -665,7 +687,7 @@
       }
 
       & .buttons {
-        width: 90%;
+        width: 100%;
       }
 
       & button {

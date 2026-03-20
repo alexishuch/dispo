@@ -127,9 +127,7 @@
     max-width: 100px;
     overflow-y: auto;
     scroll-snap-type: y mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    touch-action: pan-y; /* iOS scroll natif */
+    touch-action: pan-y;
     -webkit-user-select: none;
     user-select: none;
   }

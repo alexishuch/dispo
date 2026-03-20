@@ -53,7 +53,7 @@
     border-radius: 4px;
     background-color: white;
     cursor: pointer;
-    max-width: 4rem;
+    min-width: 4rem;
   }
 
   .copy-button:hover {
@@ -64,9 +64,25 @@
     background-color: #e0e0e0;
   }
 
+  @media (max-width: 320px) {
+    .url-container {
+      flex-direction: column;
+      width: initial;
+    }
+
+    .url-input {
+      width: 100%;
+    }
+
+    .copy-button {
+      max-width: initial;
+      width: 100%;
+    }
+  }
+
   @media (max-width: 650px) {
     .url-container {
-      width: 90%;
+      width: 100%;
       margin-top: 1rem;
     }
   }
