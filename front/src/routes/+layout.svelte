@@ -1,5 +1,6 @@
 <script lang="ts">
-  import favicon from '$lib/assets/favicon.svg';
+  import appleTouchIcon from '$lib/assets/apple-touch-icon.png';
+  import favicon from '$lib/assets/favicon.ico';
   import ErrorNotification from '$lib/components/error-notification/ErrorNotification.svelte';
   import { onMount } from 'svelte';
   import '../app.css';
@@ -24,11 +25,12 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
+  <link rel="apple-touch-icon" href={appleTouchIcon} />
   <title>Dispo?</title>
 </svelte:head>
 
 <header>
-  <a href="/"><h1>Dispo? 📆</h1></a>
+  <a href="/"><h1>🗓 Dispo?</h1></a>
 </header>
 
 {@render children()}
