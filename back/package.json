@@ -1,7 +1,7 @@
 {
-  "name": "availability-poll",
+  "name": "dispo-backend",
   "version": "1.0.0",
-  "description": "A simple NestJS app to find the best availability slots across multiple people",
+  "description": "A simple app to find the best availability slots across multiple people",
   "author": "Alexis Huchet",
   "private": true,
   "license": "UNLICENSED",
