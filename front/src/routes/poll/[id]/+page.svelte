@@ -145,7 +145,10 @@
       selectedEndDateTime = null;
     } catch (error) {
       if (isHttpError(error) && error.status === 409) {
-        setToastMessage('Un créneau existe déjà sur cet horaire.', 'error');
+        setToastMessage(
+          'Un créneau existe déjà sur cet horaire, supprime le créneau existant.',
+          'error',
+        );
       } else {
         setToastMessage("Impossible d'ajouter le créneau.", 'error');
       }
