@@ -36,3 +36,9 @@
 {@render children()}
 
 <ErrorNotification />
+
+<style>
+  a {
+    text-decoration: none;
+  }
+</style>
