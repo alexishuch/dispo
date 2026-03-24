@@ -27,7 +27,11 @@ ON "Participants" (poll_id, LOWER(name));
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 ALTER TABLE "Availabilities"
-  ADD CONSTRAINT uniq_availability_participant_ci
+  ADD CONSTRAINT unique_availability_participant
+  EXCLUDE USING gist (slot WITH &&, participant_id WITH =);
+  
+ALTER TABLE "Availabilities"
+  ADD CONSTRAINT no_adjacent_availability
   EXCLUDE USING gist (slot WITH -|-, participant_id WITH =);
 
 CREATE INDEX ON "Availabilities" USING gist (slot);
