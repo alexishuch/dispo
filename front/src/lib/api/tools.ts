@@ -6,7 +6,6 @@ async function fetchApi(path: string, options?: RequestInit): Promise<Response> 
 
   let res: Response;
   try {
-    console.log(url);
     res = await fetch(url, options);
   } catch {
     throw new Error('Server is unreachable.');
