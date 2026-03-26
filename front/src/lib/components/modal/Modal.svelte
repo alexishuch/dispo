@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from '$lib/paraglide/messages';
   import type { Snippet } from 'svelte';
 
   let {
@@ -38,12 +39,14 @@
   <hr />
   {@render children()}
   <div class="buttons">
-    <button class="danger-btn" onclick={() => dialog?.close()}>Annuler</button>
+    <button class="danger-btn" onclick={() => dialog?.close()}
+      >{m.cancel()}</button
+    >
     <button
       class="validate-btn"
       onclick={() => {
         handleConfirm();
-      }}>Valider</button
+      }}>{m.validate()}</button
     >
   </div>
 </dialog>

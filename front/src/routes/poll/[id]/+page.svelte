@@ -25,14 +25,23 @@
     ICreateAvailability,
     IParticipantEnriched,
   } from '$lib/model';
+  import { m } from '$lib/paraglide/messages';
+  import { getLocale } from '$lib/paraglide/runtime';
   import { isHttpError } from '@sveltejs/kit';
-  import AirDatepicker from 'air-datepicker';
+  import AirDatepicker, { type AirDatepickerLocale } from 'air-datepicker';
+  import localeDe from 'air-datepicker/locale/de';
+  import localeEn from 'air-datepicker/locale/en';
   import localeFr from 'air-datepicker/locale/fr';
   import { onMount, tick, untrack } from 'svelte';
   import type { PageProps } from './$types';
 
   let { data }: PageProps = $props();
   let datepicker: AirDatepicker<HTMLDivElement> | null;
+  const localeMap: Record<string, AirDatepickerLocale> = {
+    fr: localeFr,
+    en: localeEn,
+    de: localeDe,
+  };
   let timepickerWrapper: HTMLDivElement | null = $state(null);
 
   let selectedUserId = $state<string | null>(null);
@@ -83,7 +92,7 @@
       })
       .catch((error) => {
         selectedUserId = null;
-        setToastMessage('Impossible de récupérer le participant.', 'error');
+        setToastMessage(m.cannot_get_participant(), 'error');
         return Promise.reject(error);
       });
 
@@ -148,12 +157,9 @@
       selectedEndDateTime = null;
     } catch (error) {
       if (isHttpError(error) && error.status === 409) {
-        setToastMessage(
-          'Un créneau existe déjà sur cet horaire, supprime le créneau existant.',
-          'error',
-        );
+        setToastMessage(m.existing_overlapping_slot(), 'error');
       } else {
-        setToastMessage("Impossible d'ajouter le créneau.", 'error');
+        setToastMessage(m.slot_creation_failed(), 'error');
       }
       console.error('❌ Failed to create slot', error);
     }
@@ -177,7 +183,7 @@
       commonSlots = await getCommonAvailabilities(data.poll.id);
     } catch (error) {
       participant.availabilities.splice(existingSlotIndex, 0, slotSnapshot);
-      setToastMessage('Impossible de supprimer le créneau.', 'error');
+      setToastMessage(m.slot_deletion_failed(), 'error');
       console.error('❌ Failed to delete slot', error);
     }
   }
@@ -195,9 +201,9 @@
         newParticipantName = '';
       } catch (error) {
         if (isHttpError(error) && error.status === 409) {
-          setToastMessage('Ce participant existe déjà.', 'error');
+          setToastMessage(m.participant_already_exists(), 'error');
         } else {
-          setToastMessage('Impossible de créer le participant.', 'error');
+          setToastMessage(m.participant_creation_failed(), 'error');
         }
         console.error('❌ Failed to create participant:', error);
       } finally {
@@ -224,7 +230,7 @@
       await deleteParticipant(selectedUserId);
       selectedUserId = null;
       selectedDate = '';
-      setToastMessage('Le participant a été supprimé.', 'success');
+      setToastMessage(m.participant_deleted(), 'success');
     } catch (error) {
       data.poll.participants.splice(
         existingParticipantIndex,
@@ -232,7 +238,7 @@
         participantSnapshot,
       );
       console.error('❌ Failed to delete participant:', error);
-      setToastMessage('Impossible de supprimer le participant.', 'error');
+      setToastMessage(m.participant_deletion_failed(), 'error');
     } finally {
       isUpdatingParticipants = false;
     }
@@ -243,10 +249,10 @@
       await deletePoll(data.poll.id);
       isDeletingPoll = false;
       goto('/', { replaceState: true });
-      setToastMessage('Le sondage a été supprimé.', 'success');
+      setToastMessage(m.poll_deleted(), 'success');
     } catch (error) {
       console.error('❌ Failed to delete participant:', error);
-      setToastMessage('Impossible de supprimer le sondage.', 'error');
+      setToastMessage(m.poll_deletion_failed(), 'error');
     }
   }
 
@@ -282,16 +288,18 @@
     <h2>{data.poll.name}</h2>
     {#if data.poll.start_date && new Date(data.poll.start_date) > new Date()}
       <p class="poll-date">
-        Début : {formatDateToLocale(data.poll.start_date)}
+        {m.start()}
+        {formatDateToLocale(data.poll.start_date)}
       </p>
     {/if}
     {#if data.poll.end_date}
       {#if !hasPollEnded}
         <p class="poll-date">
-          Fin : {formatDateToLocale(data.poll.end_date)}
+          {m.end()}
+          {formatDateToLocale(data.poll.end_date)}
         </p>
       {:else}
-        <p>Le sondage a pris fin le {formatDateToLocale(data.poll.end_date)}</p>
+        <p>m.poll_ended_on() {formatDateToLocale(data.poll.end_date)}</p>
       {/if}
     {/if}
   </div>
@@ -302,22 +310,20 @@
   bind:showModal={isDeletingParticipant}
   emoji={'⚠️'}
   callback={handleParticipantDeletion}
-  >Souhaites-tu vraiment supprimer le participant et ses disponibilités ?</Modal
+  >{m.participant_deletion_modal_warning()}</Modal
 >
 
 <Modal
   bind:showModal={isDeletingPoll}
   emoji={'⚠️'}
-  callback={handlePollDeletion}
-  >Souhaites-tu vraiment supprimer le sondage ? Tous les participants et
-  créneaux seront supprimés.</Modal
+  callback={handlePollDeletion}>{m.poll_deletion_modal_warning()}</Modal
 >
 
 {#if selectedUserId}
   {#await participantPromise then participant}
     <div id="participant-header">
       <p>
-        Participant sélectionné :
+        {m.selected_participant()}
         <span class="wrap">{participant?.name}</span>
       </p>
       <div class="buttons">
@@ -327,13 +333,13 @@
             selectedDate = '';
           }}
         >
-          Changer
+          {m.change_participant()}
         </button>
         <button
           class="danger-btn"
           onclick={() => (isDeletingParticipant = true)}
         >
-          Supprimer
+          {m.delete_participant()}
         </button>
       </div>
     </div>
@@ -354,7 +360,7 @@
 
             datepicker = new AirDatepicker(div, {
               inline: true,
-              locale: localeFr,
+              locale: localeMap[getLocale()] ?? localeFr,
               minDate,
               maxDate: poll.end_date || undefined,
               dateFormat: 'yyyy-MM-dd',
@@ -384,17 +390,17 @@
       ></div>
 
       {#if !selectedDate}
-        <p style="margin-top: 1rem">Sélectionne une date sur le calendrier</p>
+        <p style="margin-top: 1rem">{m.select_a_date()}</p>
       {/if}
     </div>
 
     <div id="timepicker-wrapper" bind:this={timepickerWrapper}>
       {#if selectedDate && participant?.availabilities}
         <div id="day-header">
-          <h3>Mes dispos le {formatDateToLocale(selectedDate)}</h3>
+          <h3>{m.my_availabilities_on()}{formatDateToLocale(selectedDate)}</h3>
           {#if !isAddingSlot}
             <button id="addSlotButton" onclick={onAddSlotClick}
-              >+ Ajouter</button
+              >+ {m.add()}</button
             >
           {:else}
             <div class="buttons">
@@ -434,7 +440,7 @@
               {formatSlot(slot.slot_start, slot.slot_end, false)}
               <button
                 onclick={() => deleteSlot(slot.id)}
-                title="Supprimer ce créneau"
+                title={m.delete_slot()}
               >
                 🗑️
               </button>
@@ -445,13 +451,14 @@
     </div>
 
     {#if commonSlots.length > 0}
-      <h3>Créneaux communs</h3>
+      <h3>{m.common_slots()}</h3>
       <ul>
         {#each commonSlots as slot}
           <li>
             {formatSlot(slot.start_date, slot.end_date)}
             <br />
-            {slot.count} participants :
+            {slot.count}
+            {m.participants()}
             <div class="participants-tags">
               {#each slot.participants_names as p}
                 <span class="tag">{p}</span>
@@ -466,9 +473,9 @@
   <div>
     {#if !hasPollEnded}
       {#if !data.poll.participants.length}
-        <p>Saisis ton nom :</p>
+        <p>{m.enter_your_name()}</p>
       {:else}
-        <p>Sélectionne ton nom :</p>
+        <p></p>
       {/if}
     {/if}
 
@@ -492,7 +499,7 @@
           required
         />
         <button type="submit" disabled={isUpdatingParticipants}>
-          {isUpdatingParticipants ? 'Ajout...' : 'Ajouter'}
+          {isUpdatingParticipants ? m.adding_participant() : m.add()}
         </button>
       </form>
     {/if}
@@ -501,7 +508,7 @@
       class="large-btn danger-btn"
       onclick={() => (isDeletingPoll = true)}
     >
-      Supprimer le sondage
+      {m.delete_poll()}
     </button>
   </div>
 {/if}

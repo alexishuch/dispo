@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { setToastMessage } from '$lib/components/error-notification/errorToast.svelte';
+  import { m } from '$lib/paraglide/messages.js';
 
   let { form } = $props();
   let today = new Date().toLocaleDateString('en-CA');
@@ -14,7 +15,7 @@
   let submitting = $state(false);
 </script>
 
-<p>Le sondage ultra simple</p>
+<p>{m.tagline()}</p>
 
 <form
   method="post"
@@ -25,14 +26,14 @@
     return async ({ result, update }) => {
       if (result.type === 'failure') {
         console.error('❌ Failed to create poll', result);
-        setToastMessage('Impossible de créer le sondage.', 'error');
+        setToastMessage(m.creation_poll_failed(), 'error');
       }
       await update();
       submitting = false;
     };
   }}
 >
-  <label for="name">Nom du sondage</label>
+  <label for="name">{m.poll_name()}</label>
   <input
     id="name"
     name="name"
@@ -41,10 +42,10 @@
     class:error={form?.missing?.name}
   />
   {#if form?.missing?.name}
-    <p class="error-message">Le nom est requis</p>
+    <p class="error-message">{m.missing_poll_name()}</p>
   {/if}
 
-  <label for="start_date">Date de début <span>(optionnel)</span></label>
+  <label for="start_date">{m.start_date()} <span>{m.optional()}</span></label>
   <input
     id="start_date"
     name="start_date"
@@ -53,27 +54,27 @@
     bind:value={startDate}
   />
 
-  <label for="end_date">Date de fin <span>(optionnel)</span></label>
+  <label for="end_date">Date de fin <span>{m.optional()}</span></label>
   <input id="end_date" name="end_date" type="date" min={minEndDate} />
 
   <button type="submit" class="large-btn" disabled={submitting}>
-    {submitting ? 'Création...' : 'Créer un sondage'}
+    {submitting ? m.creating_poll() : m.create_poll()}
   </button>
 </form>
 
 <div id="tutorial">
-  <h3>Comment ça marche ? 🤔</h3>
+  <h3>{m.tutorial_title()}</h3>
   <ol>
-    <li>Crée un sondage</li>
-    <li>Renseigne un ou plusieurs participants</li>
-    <li>Renseigne des dates (pour toi ou plusieurs personnes)</li>
-    <li>Les meilleurs créneaux s'affichent automatiquement ✨</li>
-    <li>Garde précieusement le lien du sondage et partage le aux autres !</li>
+    <li>{m.tutorial_step_1()}</li>
+    <li>{m.tutorial_step_2()}</li>
+    <li>{m.tutorial_step_3()}</li>
+    <li>{m.tutorial_step_4()}</li>
+    <li>{m.tutorial_step_5()}</li>
   </ol>
 </div>
 
 <p id="signature">
-  Un projet signé
+  {m.project_by()}
   <svg
     fill="#000000"
     viewBox="0 -0.5 25 25"
