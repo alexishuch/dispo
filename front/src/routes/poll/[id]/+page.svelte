@@ -61,6 +61,9 @@
   let commonSlots = $derived(data.poll.commonSlots);
   let selectedStartDateTime = $state<Date | null>(null);
   let selectedEndDateTime = $state<Date | null>(null);
+  let hasPollEnded = $derived(
+    data.poll.end_date ? new Date(data.poll.end_date) < new Date() : false,
+  );
 
   $effect(() => {
     const id = selectedUserId;
@@ -283,9 +286,13 @@
       </p>
     {/if}
     {#if data.poll.end_date}
-      <p class="poll-date">
-        Fin : {formatDateToLocale(data.poll.end_date)}
-      </p>
+      {#if !hasPollEnded}
+        <p class="poll-date">
+          Fin : {formatDateToLocale(data.poll.end_date)}
+        </p>
+      {:else}
+        <p>Le sondage a pris fin le {formatDateToLocale(data.poll.end_date)}</p>
+      {/if}
     {/if}
   </div>
   <UrlDisplayBox pollId={data.poll.id} />
@@ -295,14 +302,14 @@
   bind:showModal={isDeletingParticipant}
   emoji={'⚠️'}
   callback={handleParticipantDeletion}
-  >Souhaitez-vous vraiment supprimer le participant et ses disponibilités ?</Modal
+  >Souhaites-tu vraiment supprimer le participant et ses disponibilités ?</Modal
 >
 
 <Modal
   bind:showModal={isDeletingPoll}
   emoji={'⚠️'}
   callback={handlePollDeletion}
-  >Souhaitez-vous vraiment supprimer le sondage ? Tous les participants et
+  >Souhaites-tu vraiment supprimer le sondage ? Tous les participants et
   créneaux seront supprimés.</Modal
 >
 
@@ -377,7 +384,7 @@
       ></div>
 
       {#if !selectedDate}
-        <p style="margin-top: 1rem">Sélectionnez une date sur le calendrier</p>
+        <p style="margin-top: 1rem">Sélectionne une date sur le calendrier</p>
       {/if}
     </div>
 
@@ -457,10 +464,12 @@
   {/await}
 {:else}
   <div>
-    {#if !data.poll.participants.length}
-      <p>Saisissez votre nom :</p>
-    {:else}
-      <p>Sélectionnez votre nom :</p>
+    {#if !hasPollEnded}
+      {#if !data.poll.participants.length}
+        <p>Saisis ton nom :</p>
+      {:else}
+        <p>Sélectionne ton nom :</p>
+      {/if}
     {/if}
 
     {#each data.poll.participants as participant}
@@ -469,21 +478,24 @@
           type="radio"
           bind:group={selectedUserId}
           value={participant.id}
+          disabled={hasPollEnded}
         />
         {participant.name}
       </label>
     {/each}
 
-    <form onsubmit={handleCreateParticipant}>
-      <input
-        bind:value={newParticipantName}
-        disabled={isUpdatingParticipants}
-        required
-      />
-      <button type="submit" disabled={isUpdatingParticipants}>
-        {isUpdatingParticipants ? 'Ajout...' : 'Ajouter'}
-      </button>
-    </form>
+    {#if !hasPollEnded}
+      <form onsubmit={handleCreateParticipant}>
+        <input
+          bind:value={newParticipantName}
+          disabled={isUpdatingParticipants}
+          required
+        />
+        <button type="submit" disabled={isUpdatingParticipants}>
+          {isUpdatingParticipants ? 'Ajout...' : 'Ajouter'}
+        </button>
+      </form>
+    {/if}
 
     <button
       class="large-btn danger-btn"
