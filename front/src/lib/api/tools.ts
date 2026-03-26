@@ -1,37 +1,42 @@
 import { error, isHttpError } from '@sveltejs/kit';
 import { getApiBaseUrl } from './baseUrl';
 
-export async function handleApiRequest<T>(
-  path: string,
-  options?: RequestInit,
-  expectResponse?: true
-): Promise<T>;
-
-export async function handleApiRequest<T>(
-  path: string,
-  options?: RequestInit,
-  expectResponse?: false
-): Promise<void>;
-
-export async function handleApiRequest<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<T | void> {
-  let res: Response;
+async function fetchApi(path: string, options?: RequestInit): Promise<Response> {
   const url = new URL(path, getApiBaseUrl());
 
+  let res: Response;
   try {
+    console.log(url);
     res = await fetch(url, options);
   } catch {
     throw new Error('Server is unreachable.');
   }
 
-  if (res.ok || res.status === 422) {
-    const text = await res.text();
-    return text ? JSON.parse(text) : undefined;
+  if (!res.ok && res.status !== 422) {
+    await handleResponseError(res);
   }
 
-  await handleResponseError(res);
+  return res;
+}
+
+export async function handleApiRequest<T>(
+  path: string,
+  options?: RequestInit,
+): Promise<T> {
+  const res = await fetchApi(path, options);
+
+  if (res.status === 204) {
+    throw new Error('Expected JSON response but got no content.');
+  }
+
+  return (await res.json());
+}
+
+export async function handleApiRequestVoid(
+  path: string,
+  options?: RequestInit,
+): Promise<void> {
+  await fetchApi(path, options);
 }
 
 export async function handleResponseError(res: Response): Promise<never> {

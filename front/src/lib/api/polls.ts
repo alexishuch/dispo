@@ -1,5 +1,5 @@
 import type { IPoll, IPollEnriched } from '$lib/model';
-import { handleApiRequest } from './tools';
+import { handleApiRequest, handleApiRequestVoid } from './tools';
 
 export function createPoll(
   name: string,
@@ -25,5 +25,5 @@ export function deletePoll(pollId: string): Promise<void> {
   const options = {
     method: 'DELETE',
   };
-  return handleApiRequest(path, options, false);
+  return handleApiRequestVoid(path, options);
 }

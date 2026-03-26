@@ -3,7 +3,7 @@ import type {
   ICommonSlot,
   ICreateAvailability,
 } from '$lib/model';
-import { handleApiRequest } from './tools';
+import { handleApiRequest, handleApiRequestVoid } from './tools';
 
 export function getCommonAvailabilities(
   participantId: string,
@@ -34,7 +34,7 @@ export function createAvailability(
 
 export function deleteAvailability(slotId: string): Promise<void> {
   const path = `availabilities/${slotId}`;
-  return handleApiRequest(path, {
+  return handleApiRequestVoid(path, {
     method: 'DELETE',
-  }, true);
+  });
 }
