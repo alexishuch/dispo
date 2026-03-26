@@ -377,7 +377,7 @@
       ></div>
 
       {#if !selectedDate}
-        <p>Sélectionnez une date sur le calendrier</p>
+        <p style="margin-top: 1rem">Sélectionnez une date sur le calendrier</p>
       {/if}
     </div>
 
@@ -529,7 +529,6 @@
 
   #datepicker {
     padding-top: 1rem;
-    margin-bottom: 1rem;
   }
 
   #timepicker {
@@ -656,10 +655,6 @@
   }
 
   @media (max-width: 375px) {
-    #datepicker {
-      margin-bottom: 0;
-    }
-
     #day-header {
       text-align: center;
       flex-direction: column;
