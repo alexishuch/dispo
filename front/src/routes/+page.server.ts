@@ -4,7 +4,7 @@ import type { IPoll } from '$lib/model';
 import { fail, isHttpError, redirect, type Actions } from '@sveltejs/kit';
 
 export const actions = {
-  create: async ({ request }) => {
+  create: async ({ request, getClientAddress }) => {
     const formData = await request.formData();
     const name = String(formData.get('name'));
     const start_date = String(formData.get('start_date')) || undefined;
@@ -20,7 +20,7 @@ export const actions = {
     }
 
     try {
-      newPoll = await createPoll(name, start_date, end_date);
+      newPoll = await createPoll(getClientAddress(), name, start_date, end_date);
     } catch (e: unknown) {
       const message = getErrorMessage(e);
       const status = isHttpError(e) ? e.status || 500 : 422;

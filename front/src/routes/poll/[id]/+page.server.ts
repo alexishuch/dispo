@@ -1,6 +1,6 @@
 import { getPoll } from '$lib/api/polls';
 
-export const load = async ({ params }) => {
-  const poll = await getPoll(params.id);
+export const load = async ({ params, getClientAddress }) => {
+  const poll = await getPoll(getClientAddress(), params.id);
   return { poll };
 };
