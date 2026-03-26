@@ -14,7 +14,6 @@
   } = $props();
 
   let dialog = $state() as HTMLDialogElement | undefined;
-  let displayErrorMessage = $state(false);
 
   $effect(() => {
     if (showModal) {
@@ -29,12 +28,8 @@
   });
 
   async function handleConfirm(): Promise<void> {
-    try {
-      await callback();
-      showModal = false;
-    } catch {
-      displayErrorMessage = true;
-    }
+    await callback();
+    showModal = false;
   }
 </script>
 
@@ -42,9 +37,6 @@
   <h3>{emoji}</h3>
   <hr />
   {@render children()}
-  {#if displayErrorMessage}
-    <p class="error-message">Impossible de supprimer le participant.</p>
-  {/if}
   <div class="buttons">
     <button class="danger-btn" onclick={() => dialog?.close()}>Annuler</button>
     <button
@@ -96,11 +88,6 @@
 
   hr {
     margin: 1.5rem 0;
-  }
-
-  .error-message {
-    padding-top: 1rem;
-    color: red;
   }
 
   .buttons {
