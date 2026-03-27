@@ -28,6 +28,7 @@
     "esbuild": "0.26.0"
   },
   "dependencies": {
-    "air-datepicker": "^3.6.0"
+    "air-datepicker": "^3.6.0",
+    "ics": "^3.11.0"
   }
 }

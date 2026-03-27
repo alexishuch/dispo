@@ -1,4 +1,5 @@
 import { getLocale } from '$lib/paraglide/runtime';
+import type { DateArray } from 'ics';
 
 const localeMap: Record<string, string> = {
   fr: 'fr-FR',
@@ -60,4 +61,15 @@ export function convertDateToZonedYYYYMMDD(dateString: string) {
   const day = getPart('day');
 
   return `${year}-${month}-${day}`;
+}
+
+export function convertDatetoDateArray(dateTime: string): DateArray {
+  const d = new Date(dateTime);
+  return [
+    d.getFullYear(),
+    d.getMonth() + 1, // ics months are 1-based
+    d.getDate(),
+    d.getHours(),
+    d.getMinutes(),
+  ];
 }

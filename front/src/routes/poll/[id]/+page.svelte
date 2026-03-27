@@ -16,6 +16,7 @@
   import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
   import {
+    convertDatetoDateArray,
     convertDateToZonedYYYYMMDD,
     formatDateToLocale,
     formatSlot,
@@ -32,6 +33,7 @@
   import localeDe from 'air-datepicker/locale/de';
   import localeEn from 'air-datepicker/locale/en';
   import localeFr from 'air-datepicker/locale/fr';
+  import { createEvent } from 'ics';
   import { onMount, tick, untrack } from 'svelte';
   import type { PageProps } from './$types';
 
@@ -281,6 +283,36 @@
       timepickerWrapper?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }
   }
+
+  async function downloadICS(startDateTime: string, endDateTime: string) {
+    const event = {
+      start: convertDatetoDateArray(startDateTime),
+      end: convertDatetoDateArray(endDateTime),
+      title: data.poll.name,
+    };
+    const filename = `{$data.poll.name}.ics`;
+    const file = await new Promise((resolve, reject) => {
+      createEvent(event, (error, value) => {
+        if (error) {
+          reject(error);
+        }
+
+        resolve(new File([value], filename, { type: 'text/calendar' }));
+      });
+    });
+    const url = URL.createObjectURL(file);
+    // trying to assign the file URL to a window could cause cross-site
+    // issues so this is a workaround using HTML5
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+
+    URL.revokeObjectURL(url);
+  }
 </script>
 
 <div id="poll-header">
@@ -454,16 +486,21 @@
       <h3>{m.common_slots()}</h3>
       <ul>
         {#each commonSlots as slot}
-          <li>
-            {formatSlot(slot.start_date, slot.end_date)}
-            <br />
-            {slot.count}
-            {m.participants()}
-            <div class="participants-tags">
-              {#each slot.participants_names as p}
-                <span class="tag">{p}</span>
-              {/each}
+          <li class="slot-cell">
+            <div>
+              {formatSlot(slot.start_date, slot.end_date)}
+              <br />
+              {slot.count}
+              {m.participants()}
+              <div class="participants-tags">
+                {#each slot.participants_names as p}
+                  <span class="tag">{p}</span>
+                {/each}
+              </div>
             </div>
+            <button onclick={() => downloadICS(slot.start_date, slot.end_date)}
+              >🗓</button
+            >
           </li>
         {/each}
       </ul>
@@ -596,6 +633,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 
     & button {
       padding: 0.5rem 0.75rem;
