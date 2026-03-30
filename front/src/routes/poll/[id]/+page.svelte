@@ -331,7 +331,7 @@
           {formatDateToLocale(data.poll.end_date)}
         </p>
       {:else}
-        <p>m.poll_ended_on() {formatDateToLocale(data.poll.end_date)}</p>
+        <p>{m.poll_ended_on()} {formatDateToLocale(data.poll.end_date)}</p>
       {/if}
     {/if}
   </div>
