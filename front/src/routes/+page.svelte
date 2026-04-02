@@ -15,8 +15,6 @@
   let submitting = $state(false);
 </script>
 
-<p>{m.tagline()}</p>
-
 <form
   method="post"
   action="?/create"
@@ -87,10 +85,15 @@
     /></svg
   > <a href="https://github.com/alexishuch">alexishuch</a>
 </p>
+<p>
+  <a href="https://openmoji.org/library/emoji-1F5D3/">Spiral calendar icon</a>
+  by Sina Schulz is licensed under
+  <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>
+</p>
 
 <style>
   form {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     margin-bottom: 1rem;
   }
 
@@ -119,5 +122,9 @@
   .error-message {
     color: red;
     font-size: 0.85rem;
+  }
+
+  p {
+    font-size: 0.8rem;
   }
 </style>

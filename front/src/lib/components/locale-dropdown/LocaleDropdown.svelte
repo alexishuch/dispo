@@ -104,7 +104,7 @@
   .menu {
     position: absolute;
     top: calc(100% + 0.4rem);
-    right: 0;
+    right: clamp(0px, calc(50% - 5.5rem), 0px);
     min-width: 11rem;
     padding: 0.35rem;
     border: 1px solid var(--border);
@@ -146,5 +146,13 @@
   .check {
     font-size: 0.9rem;
     color: var(--background);
+  }
+
+  @media (max-width: 320px) {
+    .menu {
+      left: 50%;
+      right: auto;
+      translate: -50% 0;
+    }
   }
 </style>

@@ -1,9 +1,8 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import appleTouchIcon from '$lib/assets/apple-touch-icon.png';
-  import favicon from '$lib/assets/favicon.ico';
   import ErrorNotification from '$lib/components/error-notification/ErrorNotification.svelte';
   import Dropdown from '$lib/components/locale-dropdown/LocaleDropdown.svelte';
+  import { m } from '$lib/paraglide/messages.js';
   import { locales, localizeHref } from '$lib/paraglide/runtime';
   import { onMount } from 'svelte';
   import '../app.css';
@@ -29,14 +28,18 @@
   });
 </script>
 
-<svelte:head>
-  <link rel="icon" href={favicon} />
-  <link rel="apple-touch-icon" href={appleTouchIcon} />
-  <title>Dispo?</title>
-</svelte:head>
-
 <header>
-  <a href="/"><h1>🗓 Dispo?</h1></a>
+  <div>
+    <a href="/">
+      <h1>
+        <img src="/favicon.svg" alt="" aria-hidden="true" />
+        Dispo?
+      </h1>
+    </a>
+    {#if page.url.pathname === '/'}
+      <p id="tagline">{m.tagline()}</p>
+    {/if}
+  </div>
 
   <Dropdown></Dropdown>
 </header>
@@ -57,13 +60,40 @@
     align-items: center;
   }
 
+  h1 {
+    text-align: center;
+  }
+
+  h1 img {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.15em;
+  }
+
   a {
     text-decoration: none;
   }
 
-  @media (min-width: 375px) {
+  #tagline {
+    text-align: center;
+  }
+
+  div {
+    margin-bottom: 1rem;
+  }
+
+  @media (min-width: 320px) {
     header {
       flex-direction: row;
+    }
+    h1 {
+      text-align: left;
+    }
+    #tagline {
+      text-align: left;
+    }
+    div {
+      margin-bottom: 0;
     }
   }
 </style>
