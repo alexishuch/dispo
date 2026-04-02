@@ -32,13 +32,13 @@
     width: 93%;
     max-width: 760px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 1.25rem;
     border-radius: 10px 10px 0 0;
-    background: var(--level, rgba(255, 0, 0, 0.65));
+    background: var(--level, rgba(255, 0, 0));
     color: white;
   }
 
   section.success {
-    background: rgba(0, 180, 0, 0.65);
+    background: rgba(0, 180, 0);
   }
 </style>
