@@ -13,91 +13,109 @@
 
   let container: HTMLDivElement;
   const ITEM_H = 40;
+
+  let isDragging = false;
+  let lastY = 0;
   let pendingDelta = 0;
   let lastWheelTime = 0;
 
-  let dragStartY = 0;
-  let dragStartScrollTop = 0;
-  let isDragging = false;
+  const clampIndex = (i: number) =>
+    Math.max(0, Math.min(i, options.length - 1));
+
+  // Snap scrollTop to the nearest item and update selected
+  function commitFromScroll() {
+    const i = clampIndex(Math.round(container.scrollTop / ITEM_H));
+    container.scrollTop = i * ITEM_H;
+    if (selected !== options[i]) selected = options[i];
+  }
+
+  // --- Mouse drag (pointer capture keeps events flowing outside the element) ---
 
   function onPointerDown(e: PointerEvent) {
     if (e.pointerType !== 'mouse') return;
+    e.preventDefault(); // Prevent text selection
     isDragging = true;
-    dragStartY = e.clientY;
-    dragStartScrollTop = container.scrollTop;
+    lastY = e.clientY;
+    container.style.scrollSnapType = 'none'; // Disable snap while dragging
     container.setPointerCapture(e.pointerId);
   }
 
   function onPointerMove(e: PointerEvent) {
     if (!isDragging) return;
-    container.scrollTop = dragStartScrollTop - (e.clientY - dragStartY);
+    container.scrollTop += lastY - e.clientY;
+    lastY = e.clientY; // Re-anchor each frame so boundary reversal is instant
   }
 
   function onPointerUp(e: PointerEvent) {
     if (!isDragging) return;
     isDragging = false;
     container.releasePointerCapture(e.pointerId);
+    commitFromScroll();
+    container.style.scrollSnapType = '';
   }
+
+  // --- Mouse wheel (step-based, debounced accumulation) ---
 
   function onWheel(e: WheelEvent) {
     e.preventDefault();
     const now = performance.now();
-    if (now - lastWheelTime > 200) pendingDelta = 0;
+    if (now - lastWheelTime > 200) pendingDelta = 0; // Reset after pause
     lastWheelTime = now;
     pendingDelta += e.deltaY;
+
     if (Math.abs(pendingDelta) >= ITEM_H) {
       const steps = Math.floor(Math.abs(pendingDelta) / ITEM_H);
       const dir = Math.sign(pendingDelta);
       pendingDelta -= dir * steps * ITEM_H;
-      const i = Math.round(container.scrollTop / ITEM_H);
-      const target = Math.max(0, Math.min(i + dir * steps, options.length - 1));
-      container.scrollTop = target * ITEM_H;
-      selected = options[target];
+
+      const i = clampIndex(
+        Math.round(container.scrollTop / ITEM_H) + dir * steps,
+      );
+      container.scrollTop = i * ITEM_H;
+      if (selected !== options[i]) selected = options[i];
     }
   }
 
+  // --- External sync: when selected or options change from parent ---
+  // Dependencies must be read unconditionally before any early return (Svelte 5 rule)
+
   $effect(() => {
-    if (!container) return;
-    const i = options.findIndex((o) => o === selected);
-    if (i >= 0) container.scrollTop = i * ITEM_H;
+    const s = selected;
+    const opts = options;
+    if (!container || isDragging) return;
+
+    const i = opts.indexOf(s);
+    if (i >= 0) {
+      if (container.scrollTop !== i * ITEM_H) container.scrollTop = i * ITEM_H;
+    } else if (opts.length > 0) {
+      // Selected value no longer exists in options (parent filtered it out)
+      selected = opts[0];
+      container.scrollTop = 0;
+    }
   });
+
+  // --- Native scroll (touch / trackpad) ---
 
   onMount(() => {
     let scrollTimer: ReturnType<typeof setTimeout>;
 
-    function onScroll() {
+    // Debounce snap: avoids committing mid-scroll on touch/trackpad
+    const onScroll = () => {
+      if (isDragging) return;
       clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => {
-        const i = Math.round(container.scrollTop / ITEM_H);
-        selected = options[Math.max(0, Math.min(i, options.length - 1))];
-      }, 100);
-    }
+      scrollTimer = setTimeout(commitFromScroll, 100);
+    };
 
-    if ('onscrollsnapchange' in container) {
-      // Chrome desktop: precise snap detection
-      container.addEventListener('scrollsnapchange', (e: any) => {
-        const el = e.snapTargetBlock as HTMLElement;
-        const index = Array.from(container.children).indexOf(el) - 1;
-        if (index >= 0 && index < options.length) selected = options[index];
-      });
-    } else {
-      // iOS Safari fallback: scroll + debounce
-      container.addEventListener('scroll', onScroll);
-    }
+    // Set initial scroll position before first paint
+    const initIndex = options.indexOf(selected);
+    if (initIndex >= 0) container.scrollTop = initIndex * ITEM_H;
 
-    // scrollend where supported (Firefox, future Safari)
-    if ('onscrollend' in container) {
-      container.addEventListener('scrollend', () => {
-        const i = Math.round(container.scrollTop / ITEM_H);
-        selected = options[Math.max(0, Math.min(i, options.length - 1))];
-      });
-    }
-
+    container.addEventListener('scroll', onScroll);
     container.addEventListener('wheel', onWheel, { passive: false });
 
     return () => {
-      container.removeEventListener('wheel', onWheel);
       container.removeEventListener('scroll', onScroll);
+      container.removeEventListener('wheel', onWheel);
       clearTimeout(scrollTimer);
     };
   });
@@ -107,14 +125,16 @@
   class="wheel"
   bind:this={container}
   role="scrollbar"
+  aria-valuenow={selected}
   tabindex="0"
+  style="user-select: none;"
   onpointerdown={onPointerDown}
   onpointermove={onPointerMove}
   onpointerup={onPointerUp}
   onpointercancel={onPointerUp}
 >
   <div class="pad"></div>
-  {#each options, i}
+  {#each options as _item, i}
     <div class="item">{display[i]}</div>
   {/each}
   <div class="pad"></div>
@@ -131,15 +151,19 @@
     -webkit-user-select: none;
     user-select: none;
   }
+
   .wheel:active {
     cursor: grabbing;
   }
+
   .wheel::-webkit-scrollbar {
     display: none;
   }
+
   .pad {
     height: 80px;
   }
+
   .item {
     height: 40px;
     line-height: 40px;
@@ -148,10 +172,5 @@
     pointer-events: none;
     -webkit-user-select: none;
     user-select: none;
-  }
-
-  @media (min-width: 400px) {
-    .wheel {
-    }
   }
 </style>

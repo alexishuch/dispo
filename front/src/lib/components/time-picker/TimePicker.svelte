@@ -48,22 +48,39 @@
     return MINUTES.filter((m) => m > selectedStartMinutes);
   });
 
+  // Changing start hour: always reset end to start + 1h, 00 minutes. Init to impossible value to skip first check.
+  let previousStartHour = $state(-1);
+
   $effect(() => {
-    selectedStartHour;
-    selectedStartMinutes = startMinutes[0];
-    selectedEndHour = selectedStartHour + 1 <= 23 ? selectedStartHour + 1 : 24;
+    const current = selectedStartHour;
+    if (current === previousStartHour) return;
+    previousStartHour = current;
+
+    selectedEndHour = current + 1 <= 23 ? current + 1 : 24;
     selectedEndMinutes = 0;
   });
 
+  // Changing start minutes: only reset end if it becomes invalid
   $effect(() => {
-    selectedStartMinutes;
-    selectedEndHour = selectedStartHour + 1 <= 23 ? selectedStartHour + 1 : 24;
-    selectedEndMinutes = 0;
+    const currentEndHours = endHours;
+    if (!currentEndHours.includes(selectedEndHour)) {
+      selectedEndHour = currentEndHours[0];
+      selectedEndMinutes = 0;
+    }
   });
 
   $effect(() => {
-    selectedEndHour;
-    selectedEndMinutes = endMinutes[0];
+    const currentEndMinutes = endMinutes;
+    if (!currentEndMinutes.includes(selectedEndMinutes)) {
+      selectedEndMinutes = currentEndMinutes[0];
+    }
+  });
+
+  $effect(() => {
+    const currentStartMinutes = startMinutes;
+    if (!currentStartMinutes.includes(selectedStartMinutes)) {
+      selectedStartMinutes = currentStartMinutes[0];
+    }
   });
 
   $effect(() => {
