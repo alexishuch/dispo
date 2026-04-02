@@ -40,7 +40,6 @@ export class PollsService {
     });
     if (!poll) throw new NotFoundException('Poll not found');
     const commonSlots = await this.availabilitiesService.findCommonSlots(id);
-    console.log(commonSlots)
     return {
       ...poll,
       commonSlots,
