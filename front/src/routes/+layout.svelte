@@ -8,6 +8,11 @@
   import '../app.css';
 
   let { children } = $props();
+  let title = $derived.by(() => {
+    const pollName = page.data.meta?.title;
+    const websiteName = 'Dispo?';
+    return pollName ? websiteName.concat(' - ', pollName) : websiteName;
+  });
 
   onMount(() => {
     const onTouchMove = (e) => {
@@ -36,8 +41,8 @@
   <meta name="apple-mobile-web-app-title" content="Dispo?" />
   <link rel="manifest" href="/site.webmanifest" />
 
-  <title>Dispo?</title>
-  <meta name="title" content="Dispo?" />
+  <title>{title}</title>
+  <meta name="title" content={title} />
   <meta
     name="description"
     content="L'app de sondage ultra simple pour savoir quand se capter !"
@@ -46,7 +51,7 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://dispo.la/" />
-  <meta property="og:title" content="Dispo?" />
+  <meta property="og:title" content={title} />
   <meta
     property="og:description"
     content="L'app de sondage ultra simple pour savoir quand se capter !"
@@ -56,7 +61,7 @@
   <!-- X (Twitter) -->
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:url" content="https://dispo.la/" />
-  <meta property="twitter:title" content="Dispo?" />
+  <meta property="twitter:title" content={title} />
   <meta
     property="twitter:description"
     content="L'app de sondage ultra simple pour savoir quand se capter !"
