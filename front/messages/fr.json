@@ -48,5 +48,6 @@
   "delete_poll": "Supprimer le sondage",
   "poll_does_not_exist": "Ce sondage n'existe pas.",
   "page_does_not_exist": "Cette page n'existe pas.",
-  "error_occurred": "Une erreur est survenue."
+  "error_occurred": "Une erreur est survenue.",
+  "add_to_calendar_safari_only": "L’ajout au calendrier est disponible uniquement via Safari. Ouvre cette page dans Safari pour en bénéficier."
 }

@@ -48,5 +48,6 @@
   "delete_poll": "Umfrage löschen",
   "poll_does_not_exist": "Diese Umfrage existiert nicht.",
   "page_does_not_exist": "Diese Seite existiert nicht.",
-  "error_occurred": "Es ist ein Fehler aufgetreten."
+  "error_occurred": "Es ist ein Fehler aufgetreten.",
+  "add_to_calendar_safari_only": "Das Hinzufügen zum Kalender ist nur über Safari verfügbar. Öffne diese Seite in Safari, um diese Funktion zu nutzen."
 }

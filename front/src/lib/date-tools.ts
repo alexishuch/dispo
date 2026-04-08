@@ -73,3 +73,10 @@ export function convertDatetoDateArray(dateTime: string): DateArray {
     d.getMinutes(),
   ];
 }
+
+export function convertDateToGCalFormat(isoDateTime: string): string {
+  const [date, time] = isoDateTime.split('T');
+  const compactDate = date.replace(/-/g, '');
+  const compactTime = time.slice(0, 8).replace(/:/g, '');
+  return `${compactDate}T${compactTime}`;
+}

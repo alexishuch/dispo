@@ -16,11 +16,15 @@
   import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
   import {
-    convertDatetoDateArray,
     convertDateToZonedYYYYMMDD,
     formatDateToLocale,
     formatSlot,
   } from '$lib/date-tools';
+  import {
+    buildGoogleCalendarUrl,
+    createICSFile,
+    detectPlatform,
+  } from '$lib/helpers/add-to-calendar.tools';
   import type {
     IAvailability,
     ICreateAvailability,
@@ -33,7 +37,6 @@
   import localeDe from 'air-datepicker/locale/de';
   import localeEn from 'air-datepicker/locale/en';
   import localeFr from 'air-datepicker/locale/fr';
-  import { createEvent } from 'ics';
   import { onMount, tick, untrack } from 'svelte';
   import type { PageProps } from './$types';
 
@@ -284,99 +287,49 @@
     }
   }
 
-  let debugLogs = $state<string[]>([]);
-
-  function log(msg: string) {
-    debugLogs.push(`${new Date().toISOString().slice(11, 19)} ${msg}`);
-  }
-
   async function downloadICS(startDateTime: string, endDateTime: string) {
-    debugLogs = [];
+    const { isAndroid, isIOS, isSafariIOS, isMac } = detectPlatform(
+      navigator.userAgent,
+    );
 
-    // — User Agent —
-    log(`UA: ${navigator.userAgent}`);
-
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    log(`isIOS: ${isIOS} | isAndroid: ${isAndroid}`);
-
-    // — Android : construire l'URL AVANT tout await —
-    let androidUrl: string | null = null;
+    // Android: open Google Calendar directly, no file needed
     if (isAndroid) {
-      const fmt = (d: string) => d.replace(/[-:]/g, '').slice(0, 15);
-      const url = new URL('https://calendar.google.com/calendar/render');
-      url.searchParams.set('action', 'TEMPLATE');
-      url.searchParams.set('text', data.poll.name);
-      url.searchParams.set(
-        'dates',
-        `${fmt(startDateTime)}/${fmt(endDateTime)}`,
+      window.open(
+        buildGoogleCalendarUrl(data.poll.name, startDateTime, endDateTime),
+        '_blank',
       );
-      androidUrl = url.toString();
-      log(`androidUrl: ${androidUrl}`);
-    }
-
-    if (androidUrl) {
-      log('calling window.open (android)...');
-      const opened = window.open(androidUrl, '_blank');
-      log(`window.open result: ${opened === null ? 'NULL (bloqué)' : 'OK'}`);
       return;
     }
 
-    // — Génération du fichier ICS —
-    log('building ICS file...');
-    const filename = `${data.poll.name}.ics`;
-    const file = await new Promise<File>((resolve, reject) => {
-      createEvent(
-        {
-          start: convertDatetoDateArray(startDateTime),
-          end: convertDatetoDateArray(endDateTime),
-          title: data.poll.name,
-        },
-        (error, value) => {
-          if (error) {
-            log(`createEvent error: ${error}`);
-            reject(error);
-          } else
-            resolve(new File([value], filename, { type: 'text/calendar' }));
-        },
-      );
-    });
-    log(`file: ${file.name} | size: ${file.size}b | type: ${file.type}`);
-
-    // — iOS —
-    if (isIOS) {
-      log('calling window.open (iOS)...');
-      const url = URL.createObjectURL(file);
-      const opened = window.open(url, '_blank');
-      log(`window.open result: ${opened === null ? 'NULL (bloqué)' : 'OK'}`);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    // Unsupported iOS browsers (Chrome iOS, Firefox iOS, Ecosia...)
+    if (isIOS && !isSafariIOS) {
+      alert(m.add_to_calendar_safari_only());
       return;
     }
 
-    // — Desktop fallback —
-    log('fallback: anchor download');
-    const url = URL.createObjectURL(file);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-    log('done');
+    // Safari iOS & Mac: navigate to blob — OS intercepts and opens Calendar app
+    // Other desktop: trigger anchor download
+    const file = await createICSFile(
+      data.poll.name,
+      startDateTime,
+      endDateTime,
+    );
+    const blobUrl = URL.createObjectURL(file);
+
+    if (isSafariIOS || isMac) {
+      window.location.href = blobUrl;
+    } else {
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = file.name;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    }
+
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
   }
 </script>
-
-<!-- Bloc debug temporaire, à retirer ensuite -->
-{#if debugLogs.length > 0}
-  <div
-    style="position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font-family:monospace;font-size:12px;padding:8px;z-index:9999;max-height:40vh;overflow-y:auto"
-  >
-    {#each debugLogs as line}
-      <div>{line}</div>
-    {/each}
-  </div>
-{/if}
 
 <div id="poll-header">
   <div id="poll-info">

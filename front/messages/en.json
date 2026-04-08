@@ -48,5 +48,6 @@
   "delete_poll": "Delete poll",
   "poll_does_not_exist": "This poll doesn't exist.",
   "page_does_not_exist": "This page doesn't exist.",
-  "error_occurred": "Something went wrong."
+  "error_occurred": "Something went wrong.",
+  "add_to_calendar_safari_only": "Adding to calendar is only available through Safari. Open this page in Safari to use this feature."
 }
