@@ -169,6 +169,7 @@
   .time {
     display: flex;
     align-items: center;
+    width: 100%;
     border-radius: 12px;
     background: #f5f5f5;
     position: relative;

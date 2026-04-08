@@ -22,44 +22,43 @@
   const clampIndex = (i: number) =>
     Math.max(0, Math.min(i, options.length - 1));
 
-  // Snap scrollTop to the nearest item and update selected
   function commitFromScroll() {
     const i = clampIndex(Math.round(container.scrollTop / ITEM_H));
     container.scrollTop = i * ITEM_H;
     if (selected !== options[i]) selected = options[i];
   }
 
-  // --- Mouse drag (pointer capture keeps events flowing outside the element) ---
+  // --- MOUSE drag via Pointer Events ---
 
   function onPointerDown(e: PointerEvent) {
     if (e.pointerType !== 'mouse') return;
-    e.preventDefault(); // Prevent text selection
+    e.preventDefault();
     isDragging = true;
     lastY = e.clientY;
-    container.style.scrollSnapType = 'none'; // Disable snap while dragging
+    container.style.scrollSnapType = 'none';
     container.setPointerCapture(e.pointerId);
   }
 
   function onPointerMove(e: PointerEvent) {
-    if (!isDragging) return;
+    if (!isDragging || e.pointerType !== 'mouse') return;
     container.scrollTop += lastY - e.clientY;
-    lastY = e.clientY; // Re-anchor each frame so boundary reversal is instant
+    lastY = e.clientY;
   }
 
   function onPointerUp(e: PointerEvent) {
-    if (!isDragging) return;
+    if (!isDragging || e.pointerType !== 'mouse') return;
     isDragging = false;
     container.releasePointerCapture(e.pointerId);
     commitFromScroll();
     container.style.scrollSnapType = '';
   }
 
-  // --- Mouse wheel (step-based, debounced accumulation) ---
+  // --- MOUSE wheel ---
 
   function onWheel(e: WheelEvent) {
     e.preventDefault();
     const now = performance.now();
-    if (now - lastWheelTime > 200) pendingDelta = 0; // Reset after pause
+    if (now - lastWheelTime > 200) pendingDelta = 0;
     lastWheelTime = now;
     pendingDelta += e.deltaY;
 
@@ -67,13 +66,35 @@
       const steps = Math.floor(Math.abs(pendingDelta) / ITEM_H);
       const dir = Math.sign(pendingDelta);
       pendingDelta -= dir * steps * ITEM_H;
-
       const i = clampIndex(
         Math.round(container.scrollTop / ITEM_H) + dir * steps,
       );
       container.scrollTop = i * ITEM_H;
       if (selected !== options[i]) selected = options[i];
     }
+  }
+
+  // --- TOUCH drag via Touch Events (bypasses browser scroll interception) ---
+
+  function onTouchStart(e: TouchEvent) {
+    // No preventDefault here — it would block page scroll context on iOS
+    isDragging = true;
+    lastY = e.touches[0].clientY;
+    container.style.scrollSnapType = 'none';
+  }
+
+  function onTouchMove(e: TouchEvent) {
+    if (!isDragging) return;
+    e.preventDefault(); // Block native scroll only once we know we're dragging the wheel
+    container.scrollTop += lastY - e.touches[0].clientY;
+    lastY = e.touches[0].clientY;
+  }
+
+  function onTouchEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    commitFromScroll();
+    container.style.scrollSnapType = '';
   }
 
   // --- External sync: when selected or options change from parent ---
@@ -88,35 +109,33 @@
     if (i >= 0) {
       if (container.scrollTop !== i * ITEM_H) container.scrollTop = i * ITEM_H;
     } else if (opts.length > 0) {
-      // Selected value no longer exists in options (parent filtered it out)
+      // Selected value no longer in options (parent filtered it out)
       selected = opts[0];
       container.scrollTop = 0;
     }
   });
 
-  // --- Native scroll (touch / trackpad) ---
-
   onMount(() => {
-    let scrollTimer: ReturnType<typeof setTimeout>;
-
-    // Debounce snap: avoids committing mid-scroll on touch/trackpad
-    const onScroll = () => {
-      if (isDragging) return;
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(commitFromScroll, 100);
-    };
-
-    // Set initial scroll position before first paint
+    // Set initial scroll position
     const initIndex = options.indexOf(selected);
     if (initIndex >= 0) container.scrollTop = initIndex * ITEM_H;
 
-    container.addEventListener('scroll', onScroll);
+    // Touch events must be registered imperatively with { passive: false }
+    // so preventDefault() is allowed — Svelte's ontouch* handlers are passive by default
+    // touchstart can be passive — we don't preventDefault there anymore
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    // touchmove must stay non-passive to allow preventDefault
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd);
+    container.addEventListener('touchcancel', onTouchEnd);
     container.addEventListener('wheel', onWheel, { passive: false });
 
     return () => {
-      container.removeEventListener('scroll', onScroll);
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
+      container.removeEventListener('touchcancel', onTouchEnd);
       container.removeEventListener('wheel', onWheel);
-      clearTimeout(scrollTimer);
     };
   });
 </script>
@@ -127,7 +146,6 @@
   role="scrollbar"
   aria-valuenow={selected}
   tabindex="0"
-  style="user-select: none;"
   onpointerdown={onPointerDown}
   onpointermove={onPointerMove}
   onpointerup={onPointerUp}
@@ -146,14 +164,13 @@
     width: 16vw;
     max-width: 100px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     scroll-snap-type: y mandatory;
-    touch-action: pan-y;
+    /* touch-action: none is NOT set here — Touch Events handle it via preventDefault() */
     -webkit-user-select: none;
     user-select: none;
-  }
-
-  .wheel:active {
-    cursor: grabbing;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   .wheel::-webkit-scrollbar {
@@ -169,6 +186,8 @@
     line-height: 40px;
     text-align: center;
     scroll-snap-align: center;
+    scroll-snap-stop: always;
+    white-space: nowrap;
     pointer-events: none;
     -webkit-user-select: none;
     user-select: none;
