@@ -48,6 +48,7 @@
     de: localeDe,
   };
   let timepickerWrapper: HTMLDivElement | null = $state(null);
+  let calendarWrapper: HTMLDivElement | null = $state(null);
 
   let selectedUserId = $state<string | null>(null);
   let participantPromise: Promise<IParticipantEnriched> | null = $state(null);
@@ -262,14 +263,22 @@
   }
 
   async function onAddSlotClick() {
-    const bottom = timepickerWrapper?.getBoundingClientRect().bottom ?? 0;
-    const timepickerMargin = 200;
     isAddingSlot = true;
     await tick();
 
-    if (bottom >= window.innerHeight - timepickerMargin) {
-      timepickerWrapper?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    if (!timepickerWrapper) return;
+
+    const rect = timepickerWrapper.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    if (rect.height >= viewportHeight) {
+      // Wrapper taller than viewport: align top so user sees the beginning
+      timepickerWrapper.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    } else if (rect.bottom > viewportHeight) {
+      // Wrapper fits in viewport but bottom is cut off: align bottom
+      timepickerWrapper.scrollIntoView({ block: 'end', behavior: 'smooth' });
     }
+    // Otherwise: wrapper is fully visible, no scroll needed
   }
 
   async function onCalendarDateClick(formattedDate: string) {
@@ -279,12 +288,9 @@
     selectedEndDateTime = null;
     await tick();
 
-    const timePickerBottom =
-      timepickerWrapper?.getBoundingClientRect().bottom ?? 0;
-
-    if (timePickerBottom >= window.innerHeight) {
-      timepickerWrapper?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
+    if (!calendarWrapper) return;
+    const top = calendarWrapper.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top, behavior: 'smooth' });
   }
 
   async function downloadICS(startDateTime: string, endDateTime: string) {
@@ -392,7 +398,7 @@
       </div>
     </div>
 
-    <div id="calendar-wrapper">
+    <div id="calendar-wrapper" bind:this={calendarWrapper}>
       <div
         id="datepicker"
         {@attach (div) => {
@@ -595,10 +601,6 @@
     }
   }
 
-  #timepicker-wrapper {
-    scroll-margin-bottom: 20px;
-  }
-
   #datepicker {
     padding-top: 1rem;
   }
@@ -619,7 +621,7 @@
 
     & .buttons {
       display: flex;
-      gap: 0.5rem;
+      gap: 15px;
     }
   }
 
