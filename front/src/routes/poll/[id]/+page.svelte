@@ -285,33 +285,52 @@
   }
 
   async function downloadICS(startDateTime: string, endDateTime: string) {
-    const event = {
-      start: convertDatetoDateArray(startDateTime),
-      end: convertDatetoDateArray(endDateTime),
-      title: data.poll.name,
-    };
-    const filename = `{$data.poll.name}.ics`;
-    const file = await new Promise((resolve, reject) => {
-      createEvent(event, (error, value) => {
-        if (error) {
-          reject(error);
-        }
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
 
-        resolve(new File([value], filename, { type: 'text/calendar' }));
-      });
+    if (isAndroid) {
+      const fmt = (d: string) => d.replace(/[-:]/g, '').slice(0, 15);
+      const url = new URL('https://calendar.google.com/calendar/render');
+      url.searchParams.set('action', 'TEMPLATE');
+      url.searchParams.set('text', data.poll.name);
+      url.searchParams.set(
+        'dates',
+        `${fmt(startDateTime)}/${fmt(endDateTime)}`,
+      );
+      window.open(url.toString(), '_blank');
+      return;
+    }
+
+    const filename = `${data.poll.name}.ics`;
+    const file = await new Promise<File>((resolve, reject) => {
+      createEvent(
+        {
+          start: convertDatetoDateArray(startDateTime),
+          end: convertDatetoDateArray(endDateTime),
+          title: data.poll.name,
+        },
+        (error, value) => {
+          if (error) reject(error);
+          else resolve(new File([value], filename, { type: 'text/calendar' }));
+        },
+      );
     });
+
+    if (isIOS) {
+      const url = URL.createObjectURL(file);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      return;
+    }
+
     const url = URL.createObjectURL(file);
-    // trying to assign the file URL to a window could cause cross-site
-    // issues so this is a workaround using HTML5
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download = filename;
-
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
-
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
   }
 </script>
 
