@@ -16,15 +16,15 @@
   import TimePicker from '$lib/components/time-picker/TimePicker.svelte';
   import UrlDisplayBox from '$lib/components/url-display-box/UrlDisplayBox.svelte';
   import {
-    convertDateToZonedYYYYMMDD,
-    formatDateToLocale,
-    formatSlot,
-  } from '$lib/date-tools';
-  import {
     buildGoogleCalendarUrl,
     createICSFile,
     detectPlatform,
   } from '$lib/helpers/add-to-calendar.tools';
+  import {
+    convertDateToZonedYYYYMMDD,
+    formatDateToLocale,
+    formatSlot,
+  } from '$lib/helpers/date.tools';
   import type {
     IAvailability,
     ICreateAvailability,

@@ -1,4 +1,4 @@
-import { convertDatetoDateArray, convertDateToGCalFormat } from "$lib/date-tools";
+import { convertDatetoDateArray, convertDateToGCalFormat } from "$lib/helpers/date.tools";
 import { createEvent } from 'ics';
 
 export function buildGoogleCalendarUrl(title: string, start: string, end: string): string {
