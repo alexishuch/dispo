@@ -284,10 +284,24 @@
     }
   }
 
+  let debugLogs = $state<string[]>([]);
+
+  function log(msg: string) {
+    debugLogs.push(`${new Date().toISOString().slice(11, 19)} ${msg}`);
+  }
+
   async function downloadICS(startDateTime: string, endDateTime: string) {
+    debugLogs = [];
+
+    // — User Agent —
+    log(`UA: ${navigator.userAgent}`);
+
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
+    log(`isIOS: ${isIOS} | isAndroid: ${isAndroid}`);
 
+    // — Android : construire l'URL AVANT tout await —
+    let androidUrl: string | null = null;
     if (isAndroid) {
       const fmt = (d: string) => d.replace(/[-:]/g, '').slice(0, 15);
       const url = new URL('https://calendar.google.com/calendar/render');
@@ -297,10 +311,19 @@
         'dates',
         `${fmt(startDateTime)}/${fmt(endDateTime)}`,
       );
-      window.open(url.toString(), '_blank');
+      androidUrl = url.toString();
+      log(`androidUrl: ${androidUrl}`);
+    }
+
+    if (androidUrl) {
+      log('calling window.open (android)...');
+      const opened = window.open(androidUrl, '_blank');
+      log(`window.open result: ${opened === null ? 'NULL (bloqué)' : 'OK'}`);
       return;
     }
 
+    // — Génération du fichier ICS —
+    log('building ICS file...');
     const filename = `${data.poll.name}.ics`;
     const file = await new Promise<File>((resolve, reject) => {
       createEvent(
@@ -310,19 +333,28 @@
           title: data.poll.name,
         },
         (error, value) => {
-          if (error) reject(error);
-          else resolve(new File([value], filename, { type: 'text/calendar' }));
+          if (error) {
+            log(`createEvent error: ${error}`);
+            reject(error);
+          } else
+            resolve(new File([value], filename, { type: 'text/calendar' }));
         },
       );
     });
+    log(`file: ${file.name} | size: ${file.size}b | type: ${file.type}`);
 
+    // — iOS —
     if (isIOS) {
+      log('calling window.open (iOS)...');
       const url = URL.createObjectURL(file);
-      window.open(url, '_blank');
+      const opened = window.open(url, '_blank');
+      log(`window.open result: ${opened === null ? 'NULL (bloqué)' : 'OK'}`);
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       return;
     }
 
+    // — Desktop fallback —
+    log('fallback: anchor download');
     const url = URL.createObjectURL(file);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -331,8 +363,20 @@
     anchor.click();
     document.body.removeChild(anchor);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
+    log('done');
   }
 </script>
+
+<!-- Bloc debug temporaire, à retirer ensuite -->
+{#if debugLogs.length > 0}
+  <div
+    style="position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font-family:monospace;font-size:12px;padding:8px;z-index:9999;max-height:40vh;overflow-y:auto"
+  >
+    {#each debugLogs as line}
+      <div>{line}</div>
+    {/each}
+  </div>
+{/if}
 
 <div id="poll-header">
   <div id="poll-info">
