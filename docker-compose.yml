@@ -17,7 +17,7 @@ services:
         source: dispo_
         target: /var/lib/postgresql
       - type: bind
-        source: ./back/init.sql
+        source: ./backend/init.sql
         target: /docker-entrypoint-initdb.d/init.sql
         read_only: true
     networks:
@@ -30,7 +30,7 @@ services:
   nestjs:
     platform: linux/arm64/v8
     build:
-      context: ./back
+      context: ./backend
     environment:
       DATABASE_URL: ${DATABASE_URL}
     env_file:
@@ -46,7 +46,7 @@ services:
   svelte:
     platform: linux/arm64/v8
     build:
-      context: ./front
+      context: ./frontend
     environment:
       ORIGIN: ${PUBLIC_BASE_URL}
       PORT: 3001
